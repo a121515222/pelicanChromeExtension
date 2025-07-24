@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>寄件人/收件人自動填</title>
+    <script src="lib/zxing-browser.js"></script>
+    <script src="popup.js"></script>
+    <style>
+      body {
+        width: 400px;
+        font-family: sans-serif;
+        padding: 10px;
+      }
+      input,
+      select {
+        display: block;
+        margin-bottom: 5px;
+        width: 100%;
+        padding: 4px;
+      }
+      button {
+        margin-top: 10px;
+        width: 100%;
+        padding: 8px;
+      }
+      hr {
+        margin: 15px 0;
+      }
+      video {
+        width: 100%;
+        height: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>📨 寄件人</h2>
+    <input id="senderName" placeholder="姓名" />
+    <input id="senderMobile" placeholder="手機" />
+    <input id="senderPhone" placeholder="市話" />
+    <select id="senderCounty">
+      <option value="">請選擇縣市</option>
+    </select>
+    <select id="senderDistrict">
+      <option value="">請選擇區域</option>
+    </select>
+    <input id="senderAddress" placeholder="地址" />
+
+    <h2>📦 收件人</h2>
+    <input id="receiverName" placeholder="姓名" />
+    <input id="receiverMobile" placeholder="手機" />
+    <input id="receiverPhone" placeholder="市話" />
+    <select id="receiverCounty">
+      <option value="">請選擇縣市</option>
+    </select>
+    <select id="receiverDistrict">
+      <option value="">請選擇區域</option>
+    </select>
+    <input id="receiverAddress" placeholder="地址" />
+
+    <button id="save">💾 儲存收件人</button>
+    <h2>📇 收件人列表</h2>
+    <div id="receiverList"></div>
+    <hr />
+    <button id="exportBtn">📤 匯出資料</button>
+    <input type="file" id="importFile" accept=".json" />
+    <button id="importBtn">📥 匯入資料</button>
+    <hr />
+    <button id="scanQRCode">📷 掃描 QR Code</button>
+    <video id="video" style="display: none"></video>
+  </body>
+</html>
