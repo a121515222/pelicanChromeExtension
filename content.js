@@ -148,59 +148,50 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
   // 填入收件人資料到網頁中
   if (request.type === "fillReceiver") {
-    try {
-      const data = request.payload;
-      console.log("收到要填入的收件人資料", data);
+  try {
+    const data = request.payload;
+    console.log("收到要填入的收件人資料", data);
 
-      // 填入收件人姓名
-      const receiverName = document.querySelector("#input-58");
-      if (receiverName) {
-        receiverName.value = data.name || "";
-        receiverName.dispatchEvent(new Event("input"));
-      }
+    const inputs = document.querySelectorAll("input");
+    if (inputs.length >= 9) {
+      // 收件人姓名 (第6個input)
+      inputs[5].value = data.name || "";
+      inputs[5].dispatchEvent(new Event("input"));
 
-      // 填入手機
-      const receiverMobile = document.querySelector("#input-61");
-      if (receiverMobile) {
-        receiverMobile.value = data.mobile || "";
-        receiverMobile.dispatchEvent(new Event("input"));
-      }
+      // 手機 (第7個input)
+      inputs[6].value = data.mobile || "";
+      inputs[6].dispatchEvent(new Event("input"));
 
-      // 填入市話
-      const receiverPhone = document.querySelector("#input-64");
-      if (receiverPhone) {
-        receiverPhone.value = data.phone || "";
-        receiverPhone.dispatchEvent(new Event("input"));
-      }
+      // 市話 (第8個input)
+      inputs[7].value = data.phone || "";
+      inputs[7].dispatchEvent(new Event("input"));
 
-      // 處理 select 縣市與區域（由第三與第四個 select 控制）
-      const selects = document.querySelectorAll("select");
-      if (selects.length >= 4) {
-        if (data.county) {
-          selects[2].value = data.county;
-          selects[2].dispatchEvent(new Event("change")); // 可能會觸發區域更新
-        }
-        if (data.district) {
-          selects[3].value = data.district;
-          selects[3].dispatchEvent(new Event("change")); // 可觸發地址同步
-        }
-      }
-
-      // 填入地址（詳細地址）
-      const receiverAddress = document.querySelector("#input-69");
-      if (receiverAddress) {
-        receiverAddress.value = data.address || "";
-        receiverAddress.dispatchEvent(new Event("input"));
-      }
-
-      sendResponse({ success: true });
-    } catch (e) {
-      console.error("填入收件人資料失敗", e);
-      sendResponse({ success: false, error: String(e) });
+      // 詳細地址 (第9個input)
+      inputs[8].value = data.address || "";
+      inputs[8].dispatchEvent(new Event("input"));
+    } else {
+      console.warn("input 數量不足，無法填入收件人欄位");
     }
 
-    // 表示這是異步回傳（必要）
-    return true;
+    // 處理 select 縣市與區域（由第三與第四個 select 控制）
+    const selects = document.querySelectorAll("select");
+    if (selects.length >= 4) {
+      if (data.county) {
+        selects[2].value = data.county;
+        selects[2].dispatchEvent(new Event("change")); // 可能會觸發區域更新
+      }
+      if (data.district) {
+        selects[3].value = data.district;
+        selects[3].dispatchEvent(new Event("change")); // 可觸發地址同步
+      }
+    }
+
+    sendResponse({ success: true });
+  } catch (e) {
+    console.error("填入收件人資料失敗", e);
+    sendResponse({ success: false, error: String(e) });
   }
+}
+
 });
 
