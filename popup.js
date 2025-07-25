@@ -491,23 +491,18 @@ function saveReceiverData() {
     address: document.getElementById('receiverAddress').value,
   };
 
-  // const sender = {
-  //   name: document.getElementById('senderName').value,
-  //   mobile: document.getElementById('senderMobile').value,
-  //   phone: document.getElementById('senderPhone').value,
-  //   county: document.getElementById('senderCounty').value,
-  //   district: document.getElementById('senderDistrict').value,
-  //   address: document.getElementById('senderAddress').value,
-  // };
-  // // 以 name 為 key 更新或新增
-  // const existingIndex = receivers.findIndex(r => r.name === recipient.name);
-  // if (existingIndex !== -1) {
-  //   receivers[existingIndex] = recipient;
-  // } else {
-  //   receivers.push(recipient);
-  // }
 }
-
+// 取得收件人dom內資料
+function getReceiverDataFromForm() {
+    return {
+      name: document.getElementById("receiverName").value,
+      mobile: document.getElementById("receiverMobile").value,
+      phone: document.getElementById("receiverPhone").value,
+      county: document.getElementById("receiverCounty").value,
+      district: document.getElementById("receiverDistrict").value,
+      address: document.getElementById("receiverAddress").value,
+    };
+  }
 window.addEventListener('DOMContentLoaded', () => {
   console.log('popup.js 已載入');
   // 載入縣市下拉選單
@@ -523,7 +518,22 @@ window.addEventListener('DOMContentLoaded', () => {
   });
 
   // 儲存收件人按鈕
-  document.getElementById('save').addEventListener('click', saveReceiverData);
+//   document.getElementById('saveReceiver').addEventListener('click', async () => {
+//   console.log("getElementById SaveReceiver")
+//   const data = getReceiverDataFromForm();
+//   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+//   chrome.tabs.sendMessage(tab.id, {
+//     type: 'saveReceiver',
+//     data
+//   });
+// });
+// 載入localStorage receiver資料並渲染
+document.getElementById('loadReceiver').addEventListener('click', async () => {
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  chrome.tabs.sendMessage(tab.id, { type: 'loadReceivers' }, (response) => {
+    renderReceiverList(response?.data || []);
+  });
+});
 
   // 匯出按鈕
   document.getElementById('exportBtn').addEventListener('click', () => {
@@ -680,19 +690,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 });
 
 document.addEventListener("DOMContentLoaded", () => {
-  const saveBtn = document.getElementById("save");
+  const saveBtn = document.getElementById("saveReceiver");
   const receiverList = document.getElementById("receiverList");
 
-  function getReceiverFromInputs() {
-    return {
-      name: document.getElementById("receiverName").value,
-      mobile: document.getElementById("receiverMobile").value,
-      phone: document.getElementById("receiverPhone").value,
-      county: document.getElementById("receiverCounty").value,
-      district: document.getElementById("receiverDistrict").value,
-      address: document.getElementById("receiverAddress").value,
-    };
-  }
+  
 
   function setReceiverToInputs(data) {
     document.getElementById("receiverName").value = data.name;
@@ -704,126 +705,103 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function saveReceiver() {
-    const data = getReceiverFromInputs();
-    if (!data.name) return alert("請輸入收件人姓名");
-
-    const receivers = JSON.parse(localStorage.getItem("receivers") || "[]");
-
-    // 若已存在同名者，覆蓋
-    const index = receivers.findIndex((r) => r.name === data.name);
-    if (index >= 0) {
-      receivers[index] = data;
-    } else {
-      receivers.push(data);
-    }
-
-    localStorage.setItem("receivers", JSON.stringify(receivers));
-    renderReceiverList();
-  }
-
-  function renderReceiverList() {
-  const receivers = JSON.parse(localStorage.getItem("receivers") || "[]");
-
-  receiverList.innerHTML = ""; // 清空
-  if (receivers.length === 0) {
-    receiverList.innerHTML = "<p>尚無收件人資料</p>";
-    return;
-  }
-
-  // 依縣市分類
-  const grouped = {};
-  receivers.forEach((r) => {
-    if (!grouped[r.county]) grouped[r.county] = [];
-    grouped[r.county].push(r);
-  });
-
-  for (const county in grouped) {
-    const section = document.createElement("div");
-    const title = document.createElement("h4");
-    title.textContent = `${county}`;
-    section.appendChild(title);
-
-    grouped[county].forEach((r) => {
-      const item = document.createElement("div");
-      item.style.border = "1px solid #ccc";
-      item.style.padding = "6px";
-      item.style.marginBottom = "4px";
-      item.style.cursor = "pointer";
-
-      const info = document.createElement("div");
-      info.innerHTML = `<strong>${r.name}</strong>（${r.district}）`;
-
-      const btnGroup = document.createElement("div");
-
-      const fillBtn = document.createElement("button");
-      fillBtn.textContent = "填入";
-      fillBtn.onclick = (e) => {
-        e.stopPropagation(); // 避免觸發外層 item 點擊
-        setReceiverToInputs(r);
-      };
-
-      const editBtn = document.createElement("button");
-      editBtn.textContent = "編輯";
-      editBtn.onclick = (e) => {
-        e.stopPropagation();
-        setReceiverToInputs(r); // 你可根據需要打開編輯 modal
-      };
-
-      const delBtn = document.createElement("button");
-      delBtn.textContent = "刪除";
-      delBtn.style.color = "red";
-      delBtn.onclick = (e) => {
-        e.stopPropagation();
-        if (confirm(`確定要刪除 ${r.name}？`)) {
-          const receivers = JSON.parse(localStorage.getItem("receivers") || "[]");
-          const newList = receivers.filter((x) => x.name !== r.name);
-          localStorage.setItem("receivers", JSON.stringify(newList));
-          renderReceiverList();
+  const data = getReceiverDataFromForm();
+  if (!data.name) return alert("請輸入收件人姓名");
+  console.log("popupSendSaveReceiver", data)
+  // 向網頁的 content script 發送儲存請求
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    chrome.tabs.sendMessage(
+      tabs[0].id,
+      { type: 'saveReceiver', payload: data },
+      (response) => {
+        if (response && response.success) {
+          // 儲存成功後重新取得 receivers 並顯示
+          getReceiversFromPage(renderReceiverList);
+        } else {
+          alert("儲存失敗");
         }
-      };
+      }
+    );
+  });
+}
 
-      btnGroup.appendChild(fillBtn);
-      btnGroup.appendChild(editBtn);
-      btnGroup.appendChild(delBtn);
+function renderReceiverList(receivers) {
+  const list = document.getElementById('receiverList');
+  list.innerHTML = '';
 
-      item.appendChild(info);
-      item.appendChild(btnGroup);
+  receivers.forEach((r, index) => {
+    const div = document.createElement('div');
+    div.style.marginBottom = '8px';
 
-      // ⭐⭐ 點整塊自動填入資料 ⭐⭐
-      item.onclick = () => {
-        setReceiverToInputs(r);
-      };
+    const info = document.createElement('span');
+    info.textContent = `${r.name} - ${r.county}${r.district}${r.address} (${r.mobile || r.phone})`;
+    div.appendChild(info);
 
-      section.appendChild(item);
-    });
+    const editBtn = document.createElement('button');
+    editBtn.textContent = '編輯';
+    editBtn.style.marginLeft = '8px';
+    editBtn.onclick = () => {
+      // 將資料填入表單
+      document.getElementById('receiverName').value = r.name;
+      document.getElementById('receiverMobile').value = r.mobile || '';
+      document.getElementById('receiverPhone').value = r.phone || '';
+      document.getElementById('receiverCounty').value = r.county;
+      document.getElementById('receiverDistrict').value = r.district;
+      document.getElementById('receiverAddress').value = r.address;
 
-    receiverList.appendChild(section);
-  }
+      // 編輯完成後先刪除原資料
+      receivers.splice(index, 1);
+      localStorage.setItem('receivers', JSON.stringify(receivers));
+      renderReceiverList(receivers);
+    };
+    div.appendChild(editBtn);
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.textContent = '刪除';
+    deleteBtn.style.marginLeft = '4px';
+    deleteBtn.onclick = () => {
+      receivers.splice(index, 1);
+      localStorage.setItem('receivers', JSON.stringify(receivers));
+      renderReceiverList(receivers);
+    };
+    div.appendChild(deleteBtn);
+
+    list.appendChild(div);
+  });
 }
 
 
+ // 存收件人資料
   saveBtn.addEventListener("click", saveReceiver);
-  if(fillBtn){
-    fillBtn.addEventListener("click", () => {
-    const receiverData = getReceiverFromInputs();
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      chrome.scripting.executeScript({
-        target: { tabId: tabs[0].id },
-        func: (data) => {
-          document.querySelector("#input-51").value = data.name;
-          document.querySelector("#input-54").value = data.mobile;
-          document.querySelector("#input-57").value = data.phone;
-          // 地址的 select 欄位需自行處理（依地區下拉順序選擇）
-          // 如有需要可以傳送整筆資料並用 options 內文字選擇
-        },
-        args: [receiverData],
-      });
+  // if(fillBtn){
+  //   fillBtn.addEventListener("click", () => {
+  //   const receiverData = getReceiverDataFromForm();
+  //   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+  //     chrome.scripting.executeScript({
+  //       target: { tabId: tabs[0].id },
+  //       func: (data) => {
+  //         document.querySelector("#input-51").value = data.name;
+  //         document.querySelector("#input-54").value = data.mobile;
+  //         document.querySelector("#input-57").value = data.phone;
+  //         // 地址的 select 欄位需自行處理（依地區下拉順序選擇）
+  //         // 如有需要可以傳送整筆資料並用 options 內文字選擇
+  //       },
+  //       args: [receiverData],
+  //     });
+  //   });
+  // });
+  // }
+// 取得localStorage資料  
+function getReceiversFromPage(callback) {
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    chrome.tabs.sendMessage(tabs[0].id, { type: 'getReceivers' }, (response) => {
+      if (Array.isArray(response)) {
+        callback(response);
+      }
     });
   });
-  }
-  
-
-  // 初始渲染
-  renderReceiverList();
+}
+  // 呼叫後畫面顯示
+getReceiversFromPage(renderReceiverList);
 });
 

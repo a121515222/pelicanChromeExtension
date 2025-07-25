@@ -2,7 +2,7 @@ function isFormPage() {
   // 檢查頁面是否包含表單元素（例如 #input-51）
   return document.querySelector('#input-51') !== null;
 }
-
+console.log("載入content.js")
 function fillForm() {
   // 從 localStorage 讀取資料
   let data = { sender: {}, recipients: [] };
@@ -96,46 +96,34 @@ document.addEventListener('DOMContentLoaded', () => {
   tryFillForm();
 });
 
-// 監聽來自 popup.js 的儲存請求
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.type === 'saveDeliveryData') {
+// 監聽來自 popup.js 的儲存請求;
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.type === 'saveReceiver') {
     try {
-      const currentData = JSON.parse(localStorage.getItem('deliveryData') || '{}');
-      const updatedData = {
-        sender: message.sender,
-        recipients: currentData.recipients ? [...currentData.recipients, message.recipient] : [message.recipient]
-      };
-      localStorage.setItem('deliveryData', JSON.stringify(updatedData));
-      console.log('資料已儲存到 localStorage', updatedData);
-      sendResponse({ status: 'success' });
+      const data = request.payload;
+      console.log("content data", data)
+      if (!data || typeof data.name !== 'string') {
+        console.error('無效的收件人資料:', data);
+        sendResponse({ success: false, error: 'Invalid receiver data' });
+        return true;
+      }
+
+      let receivers = JSON.parse(localStorage.getItem('receivers') || '[]');
+
+      const index = receivers.findIndex((r) => r.name === data.name);
+      if (index >= 0) {
+        receivers[index] = data;
+      } else {
+        receivers.push(data);
+      }
+
+      localStorage.setItem('receivers', JSON.stringify(receivers));
+      sendResponse({ success: true });
     } catch (e) {
-      console.error('儲存到 localStorage 失敗', e);
-      sendResponse({ status: 'error', message: e.message });
+      console.error("處理 saveReceiver 錯誤", e);
+      sendResponse({ success: false, error: String(e) });
     }
+    return true; // <== 重要，否則 popup 端會以為沒有回應而報錯
   }
 });
 
-chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-  if (msg.type === 'saveRecipient') {
-    const data = msg.payload;
-    try {
-      const old = JSON.parse(localStorage.getItem('recipients') || '[]');
-      old.push(data);
-      localStorage.setItem('recipients', JSON.stringify(old));
-      sendResponse({ status: 'ok' });
-    } catch (e) {
-      sendResponse({ status: 'error', message: e.message });
-    }
-  }
-
-  if (msg.type === 'getRecipients') {
-    try {
-      const data = JSON.parse(localStorage.getItem('recipients') || '[]');
-      sendResponse({ status: 'ok', data });
-    } catch (e) {
-      sendResponse({ status: 'error', data: [] });
-    }
-  }
-
-  return true; // for async sendResponse
-});
