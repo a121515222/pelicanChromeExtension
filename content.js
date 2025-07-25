@@ -98,6 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // 監聽來自 popup.js 的儲存請求;
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  // 儲存收件人資料
   if (request.type === 'saveReceiver') {
     try {
       const data = request.payload;
@@ -125,9 +126,81 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     }
     return true; // <== 重要，否則 popup 端會以為沒有回應而報錯
   }
+  //// 儲存修改後的收件人資料
+  if (request.type === 'saveModifyReceiver') {
+    try {
+      const receivers = request.payload;
+      console.log("content receivers", receivers)
+      
+
+      localStorage.setItem('receivers', JSON.stringify(receivers));
+      sendResponse({ success: true });
+    } catch (e) {
+      console.error("處理 saveReceiver 錯誤", e);
+      sendResponse({ success: false, error: String(e) });
+    }
+    return true; // <== 重要，否則 popup 端會以為沒有回應而報錯
+  }
+  // 取得收件人資料
   if (request.type === "getReceivers") {
     const receivers = JSON.parse(localStorage.getItem("receivers") || "[]");
     sendResponse({ receivers });
+  }
+  // 填入收件人資料到網頁中
+  if (request.type === "fillReceiver") {
+    try {
+      const data = request.payload;
+      console.log("收到要填入的收件人資料", data);
+
+      // 填入收件人姓名
+      const receiverName = document.querySelector("#input-58");
+      if (receiverName) {
+        receiverName.value = data.name || "";
+        receiverName.dispatchEvent(new Event("input"));
+      }
+
+      // 填入手機
+      const receiverMobile = document.querySelector("#input-61");
+      if (receiverMobile) {
+        receiverMobile.value = data.mobile || "";
+        receiverMobile.dispatchEvent(new Event("input"));
+      }
+
+      // 填入市話
+      const receiverPhone = document.querySelector("#input-64");
+      if (receiverPhone) {
+        receiverPhone.value = data.phone || "";
+        receiverPhone.dispatchEvent(new Event("input"));
+      }
+
+      // 處理 select 縣市與區域（由第三與第四個 select 控制）
+      const selects = document.querySelectorAll("select");
+      if (selects.length >= 4) {
+        if (data.county) {
+          selects[2].value = data.county;
+          selects[2].dispatchEvent(new Event("change")); // 可能會觸發區域更新
+        }
+        if (data.district) {
+          selects[3].value = data.district;
+          selects[3].dispatchEvent(new Event("change")); // 可觸發地址同步
+        }
+      }
+
+      // 填入地址（詳細地址）
+      const receiverAddress = document.querySelector("#input-69");
+      if (receiverAddress) {
+        receiverAddress.value = data.address || "";
+        receiverAddress.dispatchEvent(new Event("input"));
+      }
+
+      sendResponse({ success: true });
+    } catch (e) {
+      console.error("填入收件人資料失敗", e);
+      sendResponse({ success: false, error: String(e) });
+    }
+
+    // 表示這是異步回傳（必要）
+    return true;
   }
 });
 

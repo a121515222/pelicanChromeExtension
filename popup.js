@@ -66,6 +66,25 @@ function getReceiverDataFromForm() {
       address: document.getElementById("receiverAddress").value,
     };
   }
+//載入localStorage receiver資料
+async function getReceivers() {
+  return new Promise((resolve) => {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      chrome.tabs.sendMessage(tabs[0].id, { type: 'getReceivers' }, (response) => {
+        resolve(response?.receivers || []);
+      });
+    });
+  });
+}
+//載入localStorage receiver資料後渲染
+async function getReceiversAndRender() {
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  chrome.tabs.sendMessage(tab.id, { type: 'getReceivers' }, (response) => {
+    console.log("response",response)
+    renderReceiverList(response.receivers || []);
+  });
+  
+}
 window.addEventListener('DOMContentLoaded', () => {
   console.log('popup.js 已載入');
   // 載入縣市下拉選單
@@ -79,25 +98,11 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('receiverCounty').addEventListener('change', (e) => {
     loadDistricts(e.target.value, document.getElementById('receiverDistrict'));
   });
+// 監聽載入按鈕
 
-  // 儲存收件人按鈕
-//   document.getElementById('saveReceiver').addEventListener('click', async () => {
-//   console.log("getElementById SaveReceiver")
-//   const data = getReceiverDataFromForm();
-//   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-//   chrome.tabs.sendMessage(tab.id, {
-//     type: 'saveReceiver',
-//     data
-//   });
-// });
-// 載入localStorage receiver資料並渲染
-document.getElementById('loadReceiver').addEventListener('click', async () => {
-  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-  chrome.tabs.sendMessage(tab.id, { type: 'getReceivers' }, (response) => {
-    console.log("response",response)
-    renderReceiverList(response.receivers || []);
-  });
-});
+document.getElementById('loadReceiver').addEventListener('click', getReceiversAndRender);
+
+
 
   // 匯出按鈕
   document.getElementById('exportBtn').addEventListener('click', () => {
@@ -177,12 +182,10 @@ document.getElementById('loadReceiver').addEventListener('click', async () => {
         // 嘗試存取攝影機
         console.log('嘗試存取攝影機');
         stream = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 } });
-        console.log('stream:', stream);
         video.srcObject = stream;
         video.play();
         const codeReader = new ZXing.BrowserQRCodeReader();
         const result = await codeReader.decodeFromVideoElement(video);
-        console.log('QR Code 掃描成功:', result.text);
         video.style.display = 'none';
         stream.getTracks().forEach(track => track.stop());
 
@@ -252,17 +255,106 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true; // 保持消息通道開放
   }
 });
+// 刪除收件人資料
+
 // 渲染收件人清單
 function renderReceiverList(receivers) {
-  console.log("renderReceiverList",receivers)
-    receiverList.innerHTML = ""; // 清空舊列表
-    receivers.forEach((receiver, index) => {
-      const li = document.createElement("li");
-      li.textContent = `${receiver.name} - ${receiver.county}${receiver.district}${receiver.address}`;
-      li.addEventListener("click", () => setReceiverToInputs(receiver)); // 點選自動填入
-      receiverList.appendChild(li);
-    });
+  const receiverList = document.getElementById("receiverList");
+  receiverList.innerHTML = ""; // 清空舊列表
+
+  if (!Array.isArray(receivers)) {
+    console.error("傳進來的不是陣列", receivers);
+    return;
   }
+
+  receivers.forEach((receiver, index) => {
+    const li = document.createElement("li");
+    li.classList.add("receiver-item");
+    li.innerHTML = `
+      <div>
+        <strong>${receiver.name}</strong> - ${receiver.county}${receiver.district}${receiver.address}
+      </div>
+      <div style="margin-top: 5px;">
+        <button class="fill-btn">填入</button>
+        <button class="delete-btn">刪除</button>
+      </div>
+    `;
+
+    // 點 li 整體填入（可以不要的話可移除）
+    li.addEventListener("click", (e) => {
+      if (!e.target.classList.contains("fill-btn") && !e.target.classList.contains("delete-btn")) {
+        setReceiverToInputs(receiver);
+      }
+    });
+
+    // 點擊「填入」按鈕
+    li.querySelector(".fill-btn").addEventListener("click", (e) => {
+      e.stopPropagation();
+    // 傳送資料給 content script 要求填入
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      chrome.tabs.sendMessage(
+        tabs[0].id,
+          { type: "fillReceiver", payload: receiver },
+            (response) => {
+              if (chrome.runtime.lastError) {
+                console.error("填入錯誤:", chrome.runtime.lastError.message);
+              } else {
+              console.log("填入完成");
+              }
+            }
+        );
+      });
+    });
+
+    // 點擊「刪除」按鈕
+    li.querySelector(".delete-btn").addEventListener("click", (e) => {
+      e.stopPropagation();
+      deleteReceiver(index);
+    });
+
+    receiverList.appendChild(li);
+  });
+}
+async function deleteReceiver(indexToDelete) {
+  try {
+    const receivers = await getReceivers();
+    receivers.splice(indexToDelete, 1); // 刪除指定項目
+    chromeTabsQuery({
+      type: "saveModifyReceiver",
+      payload: receivers,
+      alertMessage: "刪除失敗",
+      onSuccess: getReceiversAndRender,
+    });
+  } catch (err) {
+    console.error("刪除收件人錯誤：", err);
+    alert("發生錯誤，請稍後再試");
+  }
+}
+
+function chromeTabsQuery({ active = true, currentWindow = true, type, payload, alertMessage = "操作失敗", onSuccess = () => {} }) {
+  chrome.tabs.query({ active, currentWindow }, (tabs) => {
+    if (!tabs[0]) {
+      alert("找不到當前分頁");
+      return;
+    }
+
+    chrome.tabs.sendMessage(tabs[0].id, { type, payload }, (response) => {
+      if (chrome.runtime.lastError) {
+        console.error("sendMessage 錯誤：", chrome.runtime.lastError);
+        alert(alertMessage);
+        return;
+      }
+
+      if (response?.success) {
+        onSuccess();
+      } else {
+        console.error("回傳失敗或無 success 字段", response);
+        alert(alertMessage);
+      }
+    });
+  });
+}
+
 
 document.addEventListener("DOMContentLoaded", () => {
   const saveBtn = document.getElementById("saveReceiver");
@@ -290,15 +382,14 @@ document.addEventListener("DOMContentLoaded", () => {
 }
 
 
-
-  function setReceiverToInputs(data) {
-    document.getElementById("receiverName").value = data.name;
-    document.getElementById("receiverMobile").value = data.mobile;
-    document.getElementById("receiverPhone").value = data.phone;
-    document.getElementById("receiverCounty").value = data.county;
-    document.getElementById("receiverDistrict").value = data.district;
-    document.getElementById("receiverAddress").value = data.address;
-  }
+function setReceiverToFrom(receiver) {
+  document.getElementById("receiverName").value = receiver.name || "";
+  document.getElementById("receiverMobile").value = receiver.mobile || "";
+  document.getElementById("receiverPhone").value = receiver.phone || "";
+  document.getElementById("receiverCounty").value = receiver.county || "";
+  document.getElementById("receiverDistrict").value = receiver.district || "";
+  document.getElementById("receiverAddress").value = receiver.address || "";
+}
 // 存收件人資料
   saveBtn.addEventListener("click", saveReceiver);
 // 取得localStorage資料  
