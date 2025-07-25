@@ -125,5 +125,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     }
     return true; // <== 重要，否則 popup 端會以為沒有回應而報錯
   }
+  if (request.type === "getReceivers") {
+    const receivers = JSON.parse(localStorage.getItem("receivers") || "[]");
+    sendResponse({ receivers });
+  }
 });
 

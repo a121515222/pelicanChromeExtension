@@ -3,8 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <title>寄件人/收件人自動填</title>
-    <script src="lib/zxing-browser.js"></script>
-    <script src="popup.js"></script>
+
     <style>
       body {
         width: 400px;
@@ -32,6 +31,9 @@
       }
     </style>
   </head>
+  <script src="lib/zxing-browser.js"></script>
+  <script src="selectConfig.js"></script>
+  <script src="popup.js"></script>
   <body>
     <h2>📨 寄件人</h2>
     <input id="senderName" placeholder="姓名" />
@@ -56,8 +58,8 @@
       <option value="">請選擇區域</option>
     </select>
     <input id="receiverAddress" placeholder="地址" />
-    <button id="loadReceiver">📂 讀取收件人</button>
     <button id="saveReceiver">💾 儲存收件人</button>
+    <button id="loadReceiver">📂 讀取收件人</button>
     <h2>📇 收件人列表</h2>
     <div id="receiverList"></div>
     <hr />
