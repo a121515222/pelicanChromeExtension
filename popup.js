@@ -1,3 +1,5 @@
+const receiverSearchInput = document.getElementById('searchReceiver')
+
 function loadCounties(countySelect) {
   countySelect.innerHTML = '<option value="">請選擇縣市</option>';
   countiesData.forEach(({ value, label }) => {
@@ -76,14 +78,33 @@ async function getReceivers() {
     });
   });
 }
-//載入localStorage receiver資料後渲染
-async function getReceiversAndRender() {
-  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-  chrome.tabs.sendMessage(tab.id, { type: 'getReceivers' }, (response) => {
-    console.log("response",response)
-    renderReceiverList(response.receivers || []);
+
+async function getDataFromLocalStorage(type, localStorageKey) {
+  return new Promise((resolve) => {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      chrome.tabs.sendMessage(tabs[0].id, { type }, (response) => {
+        if (!response) {
+          resolve([]);
+          return;
+        }
+        resolve(response[localStorageKey] || []); // 用 keyName 取資料
+      });
+    });
   });
-  
+}
+// 取得localStorage 資料後渲染 
+async function getDataAndRender({ type, localStorageKey, renderCallback }) {
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  chrome.tabs.sendMessage(tab.id, { type }, (response) => {
+    if (chrome.runtime.lastError) {
+      console.error("sendMessage 錯誤:", chrome.runtime.lastError.message);
+      return;
+    }
+    const data = response?.[localStorageKey] || [];
+    if (typeof renderCallback === "function") {
+      renderCallback(data);
+    }
+  });
 }
 window.addEventListener('DOMContentLoaded', () => {
   console.log('popup.js 已載入');
@@ -98,9 +119,14 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('receiverCounty').addEventListener('change', (e) => {
     loadDistricts(e.target.value, document.getElementById('receiverDistrict'));
   });
-// 監聽載入按鈕
-
-document.getElementById('loadReceiver').addEventListener('click', getReceiversAndRender);
+// 監聽搜尋按鈕  
+document.getElementById('searchReceiverBtn').addEventListener('click', () => {
+  getDataAndRender({
+    type: 'getReceivers',
+    localStorageKey: 'receivers',
+    renderCallback: renderReceiverList
+  });
+});
 
 
 
@@ -273,81 +299,170 @@ function setReceiverToInputs(data) {
 }
 // 渲染收件人清單
 function renderReceiverList(receivers) {
-  const receiverList = document.getElementById("receiverList");
-  receiverList.innerHTML = ""; // 清空舊列表
-
-  if (!Array.isArray(receivers)) {
-    console.error("傳進來的不是陣列", receivers);
+  renderList({
+    containerId: "receiverList",
+    data: receivers,
+    itemNameKey: "name",
+    onFill: (receiver) => {
+      chromeTabsQuery({
+      type: "fillReceiver",
+      payload: receiver,
+      alertMessage: "填入失敗",
+      onSuccess: () => console.log("填入完成"),
+      onError: (err) => console.error("填入錯誤:", err),
+      expectResponse:false
+  });
+    },
+    onDelete: (_, index) => {
+      deleteList({
+        indexToDelete: index,
+        type: "getReceivers",
+        localStorageKey: "receivers",
+        confirmMessage: "確認刪除這個收件人嗎?",
+        dataName: "name",
+        successCallback: () => getDataAndRender({
+          type: "getReceivers",
+          localStorageKey: "receivers",
+          renderCallback: renderReceiverList
+        }),
+        saveType: "saveModifyReceiver"
+      });
+    },
+    onItemClick: (receiver) => {
+      setReceiverToInputs(receiver);
+    }
+  });
+}
+// 渲染清單
+function renderList({
+  containerId,
+  data,
+  itemNameKey = "name",
+  onFill = () => {},
+  onDelete = () => {},
+  onItemClick = () => {}
+}) {
+  const container = document.getElementById(containerId);
+  if (!container) {
+    console.error(`找不到容器 #${containerId}`);
     return;
   }
 
-  receivers.forEach((receiver, index) => {
+  container.innerHTML = ""; // 清空舊列表
+
+  if (!Array.isArray(data)) {
+    console.error("傳進來的不是陣列", data);
+    return;
+  }
+
+  data.forEach((item, index) => {
     const li = document.createElement("li");
-    li.classList.add("receiver-item");
+    li.classList.add("list-item");
     li.innerHTML = `
-      <div class="receiver-card">
-        <div class="receiver-info">
-          <p>${receiver.name}</p>
+      <div class="item-card">
+        <div class="item-info">
+          <p>${item[itemNameKey] || "未命名"}</p>
         </div>
-        <div class="receiver-actions">
+        <div class="item-actions">
           <button class="fill-btn">填入</button>
           <button class="delete-btn">刪除</button>
         </div>
       </div>
     `;
 
-    // 點 li 整體填入（可以不要的話可移除）
+    // 點整列
     li.addEventListener("click", (e) => {
       if (!e.target.classList.contains("fill-btn") && !e.target.classList.contains("delete-btn")) {
-        setReceiverToInputs(receiver);
+        onItemClick(item, index);
       }
     });
 
-    // 點擊「填入」按鈕
+    // 點擊「填入」
     li.querySelector(".fill-btn").addEventListener("click", (e) => {
       e.stopPropagation();
-    // 傳送資料給 content script 要求填入
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      chrome.tabs.sendMessage(
-        tabs[0].id,
-          { type: "fillReceiver", payload: receiver },
-            (response) => {
-              if (chrome.runtime.lastError) {
-                console.error("填入錯誤:", chrome.runtime.lastError.message);
-              } else {
-              console.log("填入完成");
-              }
-            }
-        );
-      });
+      onFill(item, index);
     });
 
-    // 點擊「刪除」按鈕
+    // 點擊「刪除」
     li.querySelector(".delete-btn").addEventListener("click", (e) => {
       e.stopPropagation();
-      deleteReceiver(index);
+      onDelete(item, index);
     });
 
-    receiverList.appendChild(li);
+    container.appendChild(li);
   });
 }
-async function deleteReceiver(indexToDelete) {
+
+async function deleteList({
+  indexToDelete,
+  type,                 // 要發送給 content.js 的 type
+  localStorageKey,  // localStorage 的 key
+  confirmMessage,
+  dataName,             // 用來顯示在 confirm 文字
+  successCallback = () => {}, // 刪除成功後要做的事
+  saveType              // (可選) 內容 script 需要知道的「儲存 type」
+}) {
   try {
-    const receivers = await getReceivers();
-    receivers.splice(indexToDelete, 1); // 刪除指定項目
+    const data = await getDataFromLocalStorage(type, localStorageKey);
+    console.log("localStorageKey", localStorageKey)
+    console.log("data",data)
+    console.log("indexToDelete",indexToDelete)
+    if (!data || !Array.isArray(data)) {
+      alert("資料格式錯誤或不存在");
+      return;
+    }
+
+    if (!confirm(`『${data[indexToDelete][dataName]}』${confirmMessage}`)) {
+      return; // 使用者按取消
+    }
+
+    data.splice(indexToDelete, 1); // 刪除項目
+
     chromeTabsQuery({
-      type: "saveModifyReceiver",
-      payload: receivers,
+      type: saveType ,
+      payload: data,
+      expectResponse: true,
       alertMessage: "刪除失敗",
-      onSuccess: getReceiversAndRender,
+      onSuccess: successCallback
     });
   } catch (err) {
-    console.error("刪除收件人錯誤：", err);
+    console.error("刪除錯誤：", err);
     alert("發生錯誤，請稍後再試");
   }
 }
 
-function chromeTabsQuery({ active = true, currentWindow = true, type, payload, alertMessage = "操作失敗", onSuccess = () => {} }) {
+// function chromeTabsQuery({ active = true, currentWindow = true, type, payload, alertMessage = "操作失敗", onSuccess = () => {} }) {
+//   chrome.tabs.query({ active, currentWindow }, (tabs) => {
+//     if (!tabs[0]) {
+//       alert("找不到當前分頁");
+//       return;
+//     }
+//     chrome.tabs.sendMessage(tabs[0].id, { type, payload }, (response) => {
+//       if (chrome.runtime.lastError) {
+//         console.error("sendMessage 錯誤：", chrome.runtime.lastError);
+//         alert(alertMessage);
+//         return;
+//       }
+
+//       if (response?.success) {
+//         onSuccess();
+//       } else {
+//         console.error("回傳失敗或無 success 字段", response);
+//         alert(alertMessage);
+//       }
+//     });
+//   });
+// }
+function chromeTabsQuery({
+  type,
+  payload = null,
+  active = true,
+  currentWindow = true,
+  alertMessage = "操作失敗",
+  onSuccess = () => {},
+  onError = () => {},
+  expectResponse = true 
+}) {
   chrome.tabs.query({ active, currentWindow }, (tabs) => {
     if (!tabs[0]) {
       alert("找不到當前分頁");
@@ -355,26 +470,33 @@ function chromeTabsQuery({ active = true, currentWindow = true, type, payload, a
     }
 
     chrome.tabs.sendMessage(tabs[0].id, { type, payload }, (response) => {
+      if (!expectResponse) {
+        // 🔹 不需要回傳就直接觸發成功回調
+        onSuccess();
+        return;
+      }
+
       if (chrome.runtime.lastError) {
-        console.error("sendMessage 錯誤：", chrome.runtime.lastError);
+        console.error("sendMessage 錯誤：", chrome.runtime.lastError.message);
         alert(alertMessage);
+        onError(chrome.runtime.lastError);
         return;
       }
 
       if (response?.success) {
-        onSuccess();
+        onSuccess(response);
       } else {
-        console.error("回傳失敗或無 success 字段", response);
+        console.warn("沒有 success 或回傳值不正確:", response);
         alert(alertMessage);
+        onError(response);
       }
     });
   });
 }
 
-
 document.addEventListener("DOMContentLoaded", () => {
   const saveBtn = document.getElementById("saveReceiver");
-  const loadReceiverBtn = document.getElementById("loadReceiver");
+  const loadReceiverBtn = document.getElementById("searchReceiverBtn");
   const receiverList = document.getElementById("receiverList");
   function saveReceiver() {
   const data = getReceiverDataFromForm();

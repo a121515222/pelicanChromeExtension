@@ -41,11 +41,11 @@
         gap: 10px;
       }
 
-      .receiver-item {
+      .list-item {
         padding: 0;
       }
 
-      .receiver-card {
+      .item-card {
         border: 1px solid #ccc;
         border-radius: 8px;
         padding: 10px;
@@ -58,16 +58,16 @@
         height: 100%;
       }
 
-      .receiver-info {
+      .item-info {
         font-size: 14px;
       }
 
-      .receiver-actions {
+      .item-actions {
         display: flex;
         justify-content: space-between;
       }
 
-      .receiver-actions button {
+      .item-actions button {
         padding: 4px 8px;
         font-size: 12px;
         border: none;
@@ -75,12 +75,12 @@
         cursor: pointer;
       }
 
-      .receiver-actions .fill-btn {
+      .item-actions .fill-btn {
         background-color: #4caf50;
         color: white;
       }
 
-      .receiver-actions .delete-btn {
+      .item-actions .delete-btn {
         background-color: #f44336;
         color: white;
       }
@@ -117,7 +117,9 @@
     </select>
     <input id="receiverAddress" placeholder="地址" />
     <button id="saveReceiver">💾 儲存收件人</button>
-    <button class="mt-10" id="loadReceiver">📂 讀取收件人</button>
+    <h2>搜尋收件人</h2>
+    <input id="searchReceiver" placeholder="收件人姓名" />
+    <button class="mt-10" id="searchReceiverBtn">📂 讀取收件人</button>
     <h2>📇 收件人列表</h2>
     <ul id="receiverList" style="list-style: none; padding: 0"></ul>
 
