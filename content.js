@@ -102,7 +102,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.type === 'saveReceiver') {
     try {
       const data = request.payload;
-      console.log("content data", data)
       if (!data || typeof data.name !== 'string') {
         console.error('無效的收件人資料:', data);
         sendResponse({ success: false, error: 'Invalid receiver data' });
@@ -130,7 +129,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.type === 'saveModifyReceiver') {
     try {
       const receivers = request.payload;
-      console.log("content receivers", receivers)
       
 
       localStorage.setItem('receivers', JSON.stringify(receivers));
@@ -150,7 +148,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.type === "fillReceiver") {
   try {
     const data = request.payload;
-    console.log("收到要填入的收件人資料", data);
 
     const inputs = document.querySelectorAll("input");
     if (inputs.length >= 9) {

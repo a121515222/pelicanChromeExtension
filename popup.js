@@ -256,7 +256,21 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 // 刪除收件人資料
+// 填入popupForm資料
+function setReceiverToInputs(data) {
+  if (!data) return;
 
+  document.getElementById("receiverName").value = data.name || "";
+  document.getElementById("receiverMobile").value = data.mobile || "";
+  document.getElementById("receiverPhone").value = data.phone || "";
+  document.getElementById("receiverCounty").value = data.county || "";
+
+  // 縣市選好後載入對應的區域
+  loadDistricts(data.county, document.getElementById("receiverDistrict"));
+  document.getElementById("receiverDistrict").value = data.district || "";
+
+  document.getElementById("receiverAddress").value = data.address || "";
+}
 // 渲染收件人清單
 function renderReceiverList(receivers) {
   const receiverList = document.getElementById("receiverList");
@@ -271,12 +285,14 @@ function renderReceiverList(receivers) {
     const li = document.createElement("li");
     li.classList.add("receiver-item");
     li.innerHTML = `
-      <div>
-        <strong>${receiver.name}</strong> - ${receiver.county}${receiver.district}${receiver.address}
-      </div>
-      <div style="margin-top: 5px;">
-        <button class="fill-btn">填入</button>
-        <button class="delete-btn">刪除</button>
+      <div class="receiver-card">
+        <div class="receiver-info">
+          <p>${receiver.name}</p>
+        </div>
+        <div class="receiver-actions">
+          <button class="fill-btn">填入</button>
+          <button class="delete-btn">刪除</button>
+        </div>
       </div>
     `;
 
