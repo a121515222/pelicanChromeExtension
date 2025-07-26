@@ -1,4 +1,4 @@
-const receiverSearchInput = document.getElementById('searchReceiver')
+
 
 function loadCounties(countySelect) {
   countySelect.innerHTML = '<option value="">請選擇縣市</option>';
@@ -119,14 +119,7 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('receiverCounty').addEventListener('change', (e) => {
     loadDistricts(e.target.value, document.getElementById('receiverDistrict'));
   });
-// 監聽搜尋按鈕  
-document.getElementById('searchReceiverBtn').addEventListener('click', () => {
-  getDataAndRender({
-    type: 'getReceivers',
-    localStorageKey: 'receivers',
-    renderCallback: renderReceiverList
-  });
-});
+
 
 
 
@@ -404,9 +397,6 @@ async function deleteList({
 }) {
   try {
     const data = await getDataFromLocalStorage(type, localStorageKey);
-    console.log("localStorageKey", localStorageKey)
-    console.log("data",data)
-    console.log("indexToDelete",indexToDelete)
     if (!data || !Array.isArray(data)) {
       alert("資料格式錯誤或不存在");
       return;
@@ -430,29 +420,6 @@ async function deleteList({
     alert("發生錯誤，請稍後再試");
   }
 }
-
-// function chromeTabsQuery({ active = true, currentWindow = true, type, payload, alertMessage = "操作失敗", onSuccess = () => {} }) {
-//   chrome.tabs.query({ active, currentWindow }, (tabs) => {
-//     if (!tabs[0]) {
-//       alert("找不到當前分頁");
-//       return;
-//     }
-//     chrome.tabs.sendMessage(tabs[0].id, { type, payload }, (response) => {
-//       if (chrome.runtime.lastError) {
-//         console.error("sendMessage 錯誤：", chrome.runtime.lastError);
-//         alert(alertMessage);
-//         return;
-//       }
-
-//       if (response?.success) {
-//         onSuccess();
-//       } else {
-//         console.error("回傳失敗或無 success 字段", response);
-//         alert(alertMessage);
-//       }
-//     });
-//   });
-// }
 function chromeTabsQuery({
   type,
   payload = null,
@@ -497,41 +464,40 @@ function chromeTabsQuery({
 document.addEventListener("DOMContentLoaded", () => {
   const saveBtn = document.getElementById("saveReceiver");
   const loadReceiverBtn = document.getElementById("searchReceiverBtn");
-  const receiverList = document.getElementById("receiverList");
+  const searchReceiverInput = document.getElementById('searchReceiverName');
   function saveReceiver() {
-  const data = getReceiverDataFromForm();
-  if (!data.name) return alert("請輸入收件人姓名");
-  console.log("popupSendSaveReceiver", data)
+  const receiverData = getReceiverDataFromForm();
+  if (!receiverData.name) return alert("請輸入收件人姓名");
   // 向網頁的 content script 發送儲存請求
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     chrome.tabs.sendMessage(
       tabs[0].id,
-      { type: 'saveReceiver', payload: data },
+      { type: 'saveReceiver', payload: receiverData },
       (response) => {
         if (response && response.success) {
           // 儲存成功後重新取得 receivers 並顯示
           getReceiversFromPage(renderReceiverList);
         } else {
           alert("儲存失敗");
+          }
         }
-      }
-    );
-  });
-}
+      );
+    });
+  }
 
 
-function setReceiverToFrom(receiver) {
-  document.getElementById("receiverName").value = receiver.name || "";
-  document.getElementById("receiverMobile").value = receiver.mobile || "";
-  document.getElementById("receiverPhone").value = receiver.phone || "";
-  document.getElementById("receiverCounty").value = receiver.county || "";
-  document.getElementById("receiverDistrict").value = receiver.district || "";
-  document.getElementById("receiverAddress").value = receiver.address || "";
-}
-// 存收件人資料
+  function setReceiverToFrom(receiver) {
+    document.getElementById("receiverName").value = receiver.name || "";
+    document.getElementById("receiverMobile").value = receiver.mobile || "";
+    document.getElementById("receiverPhone").value = receiver.phone || "";
+    document.getElementById("receiverCounty").value = receiver.county || "";
+    document.getElementById("receiverDistrict").value = receiver.district || "";
+    document.getElementById("receiverAddress").value = receiver.address || "";
+  }
+  // 存收件人資料
   saveBtn.addEventListener("click", saveReceiver);
-// 取得localStorage資料  
-function getReceiversFromPage(callback) {
+  // 取得localStorage資料  
+  function getReceiversFromPage(callback) {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       chrome.tabs.sendMessage(
         tabs[0].id,
@@ -546,9 +512,40 @@ function getReceiversFromPage(callback) {
       );
     });
   }
+  searchReceiverInput.addEventListener('input', debounce(() => {
+    const receiverSearchKeyWord = searchReceiverInput.value;
+    searchReceiverListResult(receiverSearchKeyWord)
+  }, 300));
   loadReceiverBtn.addEventListener("click", () => {
+    const receiverSearchKeyWord = document.getElementById('searchReceiverName').value
     // 從網頁 content script 取得 localStorage 的收件人清單
-    getReceiversFromPage(renderReceiverList);
+    // getReceiversFromPage(renderReceiverList);
+    searchReceiverListResult(receiverSearchKeyWord)
   });
+  
 });
-
+async function searchReceiverListResult(keyWord) {
+  const result = await searchList(keyWord, "getReceivers", "receivers", "name")
+  renderReceiverList(result)
+  } 
+async function searchList(searchKeyWord,type, localStorageKey, dataName){
+  console.log("searchKeyWord", searchKeyWord)
+  const data = await getDataFromLocalStorage(type, localStorageKey);
+    if (!data || !Array.isArray(data)) {
+      alert("資料格式錯誤或不存在");
+      return;
+    }
+    if(!searchKeyWord){
+      return data
+    } else {
+      const filterListData = data.filter((item) => item[dataName].toLowerCase().includes(searchKeyWord.toLowerCase()));
+      return filterListData
+    }
+}
+function debounce(func, wait) {
+  let timeout;
+  return function (...args) {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func.apply(this, args), wait);
+  };
+}
