@@ -3,7 +3,7 @@
   "name": "Auto Form Filler",
   "version": "1.0",
   "description": "自動填入寄件人資料與選擇填入收件人資料",
-  "permissions": ["scripting", "activeTab", "storage","storage"],
+  "permissions": ["scripting", "activeTab", "storage"],
   "host_permissions": [
     "https://pelicanec.e-can.com.tw/*"
   ],
@@ -14,11 +14,12 @@
   "content_scripts": [
     {
       "matches": ["https://pelicanec.e-can.com.tw/*"],
-      "js": ["content.js"]
+      "js": ["content.js"],
+      "run_at": "document_idle"
     }
   ],
   "web_accessible_resources": [{
     "resources": ["webfonts/*"],
-    "matches": ["<all_urls>"]
+    "matches": ["https://pelicanec.e-can.com.tw/*"]
   }]
 }

@@ -1,8 +1,9 @@
+console.log("載入content.js")
 function isFormPage() {
   // 檢查頁面是否包含表單元素（例如 #input-51）
   return document.querySelector('#input-51') !== null;
 }
-console.log("載入content.js")
+
 function fillForm() {
   // 從 localStorage 讀取資料
   let data = { sender: {}, recipients: [] };
@@ -101,20 +102,18 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   // 儲存收件人資料
   if (request.type === 'saveReceiver') {
     try {
-      const data = request.payload;
-      if (!data || typeof data.name !== 'string') {
-        console.error('無效的收件人資料:', data);
+      const receiverData = request.payload;
+      if (!receiverData.name) {
+        console.error('無效的收件人資料:', receiverData);
         sendResponse({ success: false, error: 'Invalid receiver data' });
         return true;
       }
-
       let receivers = JSON.parse(localStorage.getItem('receivers') || '[]');
-
-      const index = receivers.findIndex((r) => r.name === data.name);
+      const index = receivers.findIndex((r) => r.name === receiverData.name);
       if (index >= 0) {
-        receivers[index] = data;
+        receivers[index] = receiverData;
       } else {
-        receivers.push(data);
+        receivers.push(receiverData);
       }
 
       localStorage.setItem('receivers', JSON.stringify(receivers));
@@ -125,16 +124,55 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     }
     return true; // <== 重要，否則 popup 端會以為沒有回應而報錯
   }
-  //// 儲存修改後的收件人資料
+  // 儲存 寄件者資料
+  
+  if (request.type === "saveSender") {
+  try {
+    const senderData = request.payload;
+    if (!senderData.name) {
+      console.error("無效的寄件人資料", senderData);
+      sendResponse({ success: false, error: "Invalid sender data" });
+      return true;
+    }
+
+    let senders = JSON.parse(localStorage.getItem("senders") || "[]");
+    const index = senders.findIndex(r => r.name === senderData.name);
+
+    if (index >= 0) {
+      senders[index] = senderData;
+    } else {
+      senders.push(senderData);
+    }
+
+    localStorage.setItem("senders", JSON.stringify(senders));
+    sendResponse({ success: true });
+  } catch (e) {
+    console.error("儲存寄件人失敗", e);
+    sendResponse({ success: false, error: String(e) });
+  }
+  return true;
+}
+
+  // 儲存修改後的收件人資料
   if (request.type === 'saveModifyReceiver') {
     try {
       const receivers = request.payload;
-      
-
       localStorage.setItem('receivers', JSON.stringify(receivers));
       sendResponse({ success: true });
     } catch (e) {
       console.error("處理 saveReceiver 錯誤", e);
+      sendResponse({ success: false, error: String(e) });
+    }
+    return true; // <== 重要，否則 popup 端會以為沒有回應而報錯
+  }
+  // 儲存修改後的收寄人資料
+  if (request.type === 'saveModifySender') {
+    try {
+      const senders = request.payload;
+      localStorage.setItem('senders', JSON.stringify(senders));
+      sendResponse({ success: true });
+    } catch (e) {
+      console.error("處理 saveSender 錯誤", e);
       sendResponse({ success: false, error: String(e) });
     }
     return true; // <== 重要，否則 popup 端會以為沒有回應而報錯
@@ -142,7 +180,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   // 取得收件人資料
   if (request.type === "getReceivers") {
     const receivers = JSON.parse(localStorage.getItem("receivers") || "[]");
-    sendResponse({ receivers });
+    sendResponse({ success: true, receivers });
+    return true
+  }
+  // 取得收寄人資料
+  if (request.type === "getSenders") {
+    const senders = JSON.parse(localStorage.getItem("senders") || "[]");
+    sendResponse({ success: true, senders });
+    return true
   }
   // 填入收件人資料到網頁中
   if (request.type === "fillReceiver") {
@@ -189,6 +234,52 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     sendResponse({ success: false, error: String(e) });
   }
 }
+
+// 填入寄件人資料到網頁中
+  if (request.type === "fillSender") {
+  try {
+    const data = request.payload;
+
+    const inputs = document.querySelectorAll("input");
+    if (inputs.length >= 9) {
+      // 寄件人姓名 (第2個input)
+      inputs[1].value = data.name || "";
+      inputs[1].dispatchEvent(new Event("input"));
+
+      // 寄件人手機 (第3個input)
+      inputs[2].value = data.mobile || "";
+      inputs[2].dispatchEvent(new Event("input"));
+
+      // 寄件人市話 (第4個input)
+      inputs[3].value = data.phone || "";
+      inputs[3].dispatchEvent(new Event("input"));
+
+      // 寄件人詳細地址 (第5個input)
+      inputs[4].value = data.address || "";
+      inputs[4].dispatchEvent(new Event("input"));
+    } else {
+      console.warn("input 數量不足，無法填入收件人欄位");
+    }
+
+    // 處理 select 縣市與區域（由第一與第二個 select 控制）
+    const selects = document.querySelectorAll("select");
+    if (selects.length >= 4) {
+      if (data.county) {
+        selects[0].value = data.county;
+        selects[0].dispatchEvent(new Event("change")); // 可能會觸發區域更新
+      }
+      if (data.district) {
+        selects[1].value = data.district;
+        selects[1].dispatchEvent(new Event("change")); // 可觸發地址同步
+      }
+    }
+
+      sendResponse({ success: true });
+   }   catch (e) {
+      console.error("填入寄件人資料失敗", e);
+      sendResponse({ success: false, error: String(e) });
+    }
+  }
 
 });
 

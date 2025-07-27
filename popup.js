@@ -57,6 +57,46 @@ function saveReceiverData() {
   };
 
 }
+// 儲存收件者
+function saveReceiver() {
+  const receiverData = getReceiverDataFromForm();
+  if (!receiverData.name) return alert("請輸入收件人姓名");
+  // 向網頁的 content script 發送儲存請求
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    chrome.tabs.sendMessage(
+      tabs[0].id,
+      { type: 'saveReceiver', payload: receiverData },
+      (response) => {
+        if (response && response.success) {
+        } else {
+          alert("儲存失敗");
+          }
+        }
+      );
+    });
+  }
+ // 儲存寄件者
+ function saveSender() {
+  const senderData = getSenderDataFromForm();
+  console.log("senderData", senderData)
+  if (!senderData.name) {
+    alert("請輸入寄件人姓名");
+    return;
+  }
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    chrome.tabs.sendMessage(
+      tabs[0].id,
+      { type: "saveSender", payload: senderData },
+      (response) => {
+        if (response && response.success) {
+        } else {
+          alert("儲存寄件人失敗");
+        }
+      }
+    );
+  });
+}
+ 
 // 取得收件人dom內資料
 function getReceiverDataFromForm() {
     return {
@@ -68,6 +108,18 @@ function getReceiverDataFromForm() {
       address: document.getElementById("receiverAddress").value,
     };
   }
+// 取得寄件人dom內資料
+function getSenderDataFromForm() {
+  return {
+    name: document.getElementById("senderName").value,
+    mobile: document.getElementById("senderMobile").value,
+    phone: document.getElementById("senderPhone").value,
+    county: document.getElementById("senderCounty").value,
+    district: document.getElementById("senderDistrict").value,
+    address: document.getElementById("senderAddress").value,
+  };
+}
+
 //載入localStorage receiver資料
 async function getReceivers() {
   return new Promise((resolve) => {
@@ -119,10 +171,6 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('receiverCounty').addEventListener('change', (e) => {
     loadDistricts(e.target.value, document.getElementById('receiverDistrict'));
   });
-
-
-
-
   // 匯出按鈕
   document.getElementById('exportBtn').addEventListener('click', () => {
     chrome.runtime.sendMessage({ type: 'getDeliveryData' }, (response) => {
@@ -274,7 +322,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true; // 保持消息通道開放
   }
 });
-// 刪除收件人資料
 // 填入popupForm資料
 function setReceiverToInputs(data) {
   if (!data) return;
@@ -289,6 +336,20 @@ function setReceiverToInputs(data) {
   document.getElementById("receiverDistrict").value = data.district || "";
 
   document.getElementById("receiverAddress").value = data.address || "";
+}
+function setSenderToInputs(data) {
+  if (!data) return;
+
+  document.getElementById("senderName").value = data.name || "";
+  document.getElementById("senderMobile").value = data.mobile || "";
+  document.getElementById("senderPhone").value = data.phone || "";
+  document.getElementById("senderCounty").value = data.county || "";
+
+  // 縣市選好後載入對應的區域
+  loadDistricts(data.county, document.getElementById("senderDistrict"));
+  document.getElementById("senderDistrict").value = data.district || "";
+
+  document.getElementById("senderAddress").value = data.address || "";
 }
 // 渲染收件人清單
 function renderReceiverList(receivers) {
@@ -323,6 +384,41 @@ function renderReceiverList(receivers) {
     },
     onItemClick: (receiver) => {
       setReceiverToInputs(receiver);
+    }
+  });
+}
+function renderSenderList(senders){
+  renderList({
+    containerId: "senderList",
+    data: senders,
+    itemNameKey: "name",
+    onFill: (sender) => {
+      chromeTabsQuery({
+      type: "fillSender",
+      payload: sender,
+      alertMessage: "填入失敗",
+      onSuccess: () => console.log("填入完成"),
+      onError: (err) => console.error("填入錯誤:", err),
+      expectResponse:false
+  });
+    },
+    onDelete: (_, index) => {
+      deleteList({
+        indexToDelete: index,
+        type: "getSenders",
+        localStorageKey: "senders",
+        confirmMessage: "確認刪除這個寄件人嗎?",
+        dataName: "name",
+        successCallback: () => getDataAndRender({
+          type: "getSenders",
+          localStorageKey: "senders",
+          renderCallback: renderSenderList
+        }),
+        saveType: "saveModifySender"
+      });
+    },
+    onItemClick: (sender) => {
+      setSenderToInputs(sender);
     }
   });
 }
@@ -468,28 +564,12 @@ function chromeTabsQuery({
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  const saveBtn = document.getElementById("saveReceiver");
+  const saveReceiverBtn = document.getElementById("saveReceiver");
+  const saveSenderBtn = document.getElementById("saveSender")
   const loadReceiverBtn = document.getElementById("searchReceiverBtn");
   const searchReceiverInput = document.getElementById('searchReceiverName');
-  function saveReceiver() {
-  const receiverData = getReceiverDataFromForm();
-  if (!receiverData.name) return alert("請輸入收件人姓名");
-  // 向網頁的 content script 發送儲存請求
-  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    chrome.tabs.sendMessage(
-      tabs[0].id,
-      { type: 'saveReceiver', payload: receiverData },
-      (response) => {
-        if (response && response.success) {
-          // 儲存成功後重新取得 receivers 並顯示
-          getReceiversFromPage(renderReceiverList);
-        } else {
-          alert("儲存失敗");
-          }
-        }
-      );
-    });
-  }
+  const loadSenderBtn = document.getElementById("searchSenderBtn");
+  const searchSenderInput = document.getElementById('searchSenderName')
 
 
   function setReceiverToFrom(receiver) {
@@ -501,46 +581,51 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("receiverAddress").value = receiver.address || "";
   }
   // 存收件人資料
-  saveBtn.addEventListener("click", saveReceiver);
-  // 取得localStorage資料  
-  function getReceiversFromPage(callback) {
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      chrome.tabs.sendMessage(
-        tabs[0].id,
-        { type: "getReceivers" },
-        (response) => {
-          if (response && response.receivers) {
-            callback(response.receivers);
-          } else {
-            alert("讀取收件人失敗");
-          }
-        }
-      );
-    });
-  }
+  saveReceiverBtn.addEventListener("click", saveReceiver);
+  // 儲存寄件人資料
+  saveSenderBtn.addEventListener("click", saveSender);
   // 收件人搜尋功能
   searchReceiverInput.addEventListener('input', debounce(() => {
     const receiverSearchKeyWord = searchReceiverInput.value;
     searchReceiverListResult(receiverSearchKeyWord)
   }, 300));
+  
   loadReceiverBtn.addEventListener("click", () => {
     const receiverSearchKeyWord = document.getElementById('searchReceiverName').value
     // 從網頁 content script 取得 localStorage 的收件人清單
     searchReceiverListResult(receiverSearchKeyWord)
+  });
+  // 寄件人搜尋功能
+  searchSenderInput.addEventListener('input', debounce(() => {
+    const senderSearchKeyWord = searchSenderInput.value;
+    searchSenderListResult(senderSearchKeyWord)
+  }, 300));
+  loadSenderBtn.addEventListener("click", () => {
+    const senderSearchKeyWord = document.getElementById('searchSenderName').value
+    // 從網頁 content script 取得 localStorage 的收件人清單
+    searchSenderListResult(senderSearchKeyWord)
   });
   // 收件人列表摺疊功能
   createCollapsibleList({
     containerId: "receiverList",
     toggleBtnId: "toggleReceiverListBtn"
   });
+  createCollapsibleList({
+  containerId: "senderList",
+  toggleBtnId: "toggleSenderListBtn"
+});
 });
 async function searchReceiverListResult(keyWord) {
   const result = await searchList(keyWord, "getReceivers", "receivers", "name")
   renderReceiverList(result)
   } 
-async function searchList(searchKeyWord,type, localStorageKey, dataName){
-  console.log("searchKeyWord", searchKeyWord)
+async function searchSenderListResult(keyWord) {
+  const result = await searchList(keyWord, "getSenders", "senders", "name")
+  renderSenderList(result)
+  }   
+async function searchList(searchKeyWord, type, localStorageKey, dataName){
   const data = await getDataFromLocalStorage(type, localStorageKey);
+  console.log("data", data)
     if (!data || !Array.isArray(data)) {
       alert("資料格式錯誤或不存在");
       return;
