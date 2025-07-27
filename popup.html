@@ -44,6 +44,7 @@
       <i id="toggleSenderIcon" class="fas fa-chevron-up"></i>
     </h2>
     <ul id="senderList" style="list-style: none; padding: 0"></ul>
+    <hr />
     <h2
       id="toggleReceiverFormBtn"
       class="flex-row align-item-center justify-content-between"
@@ -78,7 +79,39 @@
       <i id="toggleReceiverIcon" class="fas fa-chevron-up"></i>
     </h2>
     <ul id="receiverList" style="list-style: none; padding: 0"></ul>
-
+    <hr />
+    <h2
+      id="toggleCargoBtn"
+      class="flex-row align-item-center justify-content-between"
+    >
+      貨物
+      <i id="toggleCargoFormIcon" class="fas fa-chevron-up"></i>
+    </h2>
+    <div id="cargoForm">
+      <input id="cargoName" placeholder="內容物" />
+      <input id="cargoPrice" placeholder="內容物價值" />
+      <select id="selectDeliverTemperature">
+        <option value="常溫">常溫</option>
+        <option value="冷藏">冷藏</option>
+        <option value="冷凍">冷凍</option>
+      </select>
+      <select id="selectDeliverTime">
+        <option value="00">不指定</option>
+        <option value="01">13時前</option>
+        <option value="02">14-18時前</option>
+      </select>
+    </div>
+    <h2>搜尋貨物</h2>
+    <input type="text" id="searchCargoName" placeholder="貨物內容" />
+    <button class="mt-10 btn" id="searchCargoBtn">讀取貨物</button>
+    <h2
+      id="toggleReceiverListBtn"
+      class="flex-row align-item-center justify-content-between"
+    >
+      貨物列表
+      <i id="toggleCargoIcon" class="fas fa-chevron-up"></i>
+    </h2>
+    <ul id="cargoList" style="list-style: none; padding: 0"></ul>
     <hr />
     <button id="exportBtn">匯出資料</button>
     <input type="file" id="importFile" accept=".json" />
