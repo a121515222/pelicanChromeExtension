@@ -16,5 +16,9 @@
       "matches": ["https://pelicanec.e-can.com.tw/*"],
       "js": ["content.js"]
     }
-  ]
+  ],
+  "web_accessible_resources": [{
+    "resources": ["webfonts/*"],
+    "matches": ["<all_urls>"]
+  }]
 }

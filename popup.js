@@ -366,6 +366,12 @@ function renderList({
     // 點整列
     li.addEventListener("click", (e) => {
       if (!e.target.classList.contains("fill-btn") && !e.target.classList.contains("delete-btn")) {
+         // 移除其他 li 的 focus 樣式
+        container.querySelectorAll(".list-item").forEach((el) => {
+          el.classList.remove("focused");
+        });
+        // 加上目前 li 的 focus 樣式
+        li.classList.add("focused");
         onItemClick(item, index);
       }
     });
@@ -512,6 +518,7 @@ document.addEventListener("DOMContentLoaded", () => {
       );
     });
   }
+  // 收件人搜尋功能
   searchReceiverInput.addEventListener('input', debounce(() => {
     const receiverSearchKeyWord = searchReceiverInput.value;
     searchReceiverListResult(receiverSearchKeyWord)
@@ -519,10 +526,13 @@ document.addEventListener("DOMContentLoaded", () => {
   loadReceiverBtn.addEventListener("click", () => {
     const receiverSearchKeyWord = document.getElementById('searchReceiverName').value
     // 從網頁 content script 取得 localStorage 的收件人清單
-    // getReceiversFromPage(renderReceiverList);
     searchReceiverListResult(receiverSearchKeyWord)
   });
-  
+  // 收件人列表摺疊功能
+  createCollapsibleList({
+    containerId: "receiverList",
+    toggleBtnId: "toggleReceiverListBtn"
+  });
 });
 async function searchReceiverListResult(keyWord) {
   const result = await searchList(keyWord, "getReceivers", "receivers", "name")
@@ -548,4 +558,19 @@ function debounce(func, wait) {
     clearTimeout(timeout);
     timeout = setTimeout(() => func.apply(this, args), wait);
   };
+}
+
+// 摺疊功能
+
+function createCollapsibleList({ containerId, toggleBtnId }) {
+  const container = document.getElementById(containerId);
+  const toggleBtn = document.getElementById(toggleBtnId);
+  const icon = toggleBtn.querySelector("i");
+  let isCollapsed = false;
+
+  toggleBtn.addEventListener("click", () => {
+    isCollapsed = !isCollapsed;
+    container.style.display = isCollapsed ? "none" : "block";
+    icon.className = isCollapsed ? "fas fa-chevron-down" : "fas fa-chevron-up";
+  });
 }

@@ -2,89 +2,9 @@
 <html>
   <head>
     <meta charset="UTF-8" />
+    <link rel="stylesheet" href="css/util.css" />
+    <link rel="stylesheet" href="css/all.min.css" />
     <title>寄件人/收件人自動填</title>
-
-    <style>
-      body {
-        width: 400px;
-        font-family: sans-serif;
-        padding: 10px;
-      }
-      input,
-      select {
-        display: block;
-        margin-bottom: 5px;
-        width: 100%;
-        padding: 4px;
-      }
-      button {
-        width: 100%;
-        padding: 8px;
-      }
-      hr {
-        margin: 15px 0;
-      }
-      video {
-        width: 100%;
-        height: auto;
-      }
-      .mt-10 {
-        margin-top: 10px;
-      }
-      #receiverList {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-        width: 100%;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-      }
-
-      .list-item {
-        padding: 0;
-      }
-
-      .item-card {
-        border: 1px solid #ccc;
-        border-radius: 8px;
-        padding: 10px;
-        background: #fff;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        display: flex;
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
-        height: 100%;
-      }
-
-      .item-info {
-        font-size: 14px;
-      }
-
-      .item-actions {
-        display: flex;
-        justify-content: space-between;
-      }
-
-      .item-actions button {
-        padding: 4px 8px;
-        font-size: 12px;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-      }
-
-      .item-actions .fill-btn {
-        background-color: #4caf50;
-        color: white;
-      }
-
-      .item-actions .delete-btn {
-        background-color: #f44336;
-        color: white;
-      }
-    </style>
   </head>
   <script src="lib/zxing-browser.js"></script>
   <script src="selectConfig.js"></script>
@@ -120,7 +40,13 @@
     <h2>搜尋收件人</h2>
     <input id="searchReceiverName" placeholder="收件人姓名" />
     <button class="mt-10" id="searchReceiverBtn">📂 讀取收件人</button>
-    <h2>📇 收件人列表</h2>
+    <h2
+      id="toggleReceiverListBtn"
+      class="flex-row align-item-center justify-content-between"
+    >
+      收件人列表
+      <i id="toggleReceiverIcon" class="fas fa-chevron-up"></i>
+    </h2>
     <ul id="receiverList" style="list-style: none; padding: 0"></ul>
 
     <hr />
