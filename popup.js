@@ -604,15 +604,26 @@ document.addEventListener("DOMContentLoaded", () => {
     // 從網頁 content script 取得 localStorage 的收件人清單
     searchSenderListResult(senderSearchKeyWord)
   });
-  // 收件人列表摺疊功能
+  // 收件人列表摺疊
   createCollapsibleList({
     containerId: "receiverList",
     toggleBtnId: "toggleReceiverListBtn"
   });
+  // 寄件人列表摺疊
   createCollapsibleList({
-  containerId: "senderList",
-  toggleBtnId: "toggleSenderListBtn"
-});
+    containerId: "senderList",
+    toggleBtnId: "toggleSenderListBtn"
+  });
+  // 收件人表單摺疊
+  createCollapsibleList({
+    containerId: "receiverForm",
+    toggleBtnId: "toggleReceiverFormBtn"
+  });
+  // 寄件人表單摺疊
+  createCollapsibleList({
+    containerId: "senderForm",
+    toggleBtnId: "toggleSenderFormBtn"
+  });
 });
 async function searchReceiverListResult(keyWord) {
   const result = await searchList(keyWord, "getReceivers", "receivers", "name")
