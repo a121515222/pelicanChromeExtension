@@ -8,10 +8,10 @@
   </head>
 
   <body>
-    <button id="scanQRCode">📷 掃描 QR Code</button>
+    <button class="btn w-100" id="scanQRCode">掃描 QR Code</button>
     <video id="video" style="display: none"></video>
     <hr />
-    <h2>📨 寄件人</h2>
+    <h2>寄件人</h2>
     <input id="senderName" placeholder="姓名" />
     <input id="senderMobile" placeholder="手機" />
     <input id="senderPhone" placeholder="市話" />
@@ -22,10 +22,11 @@
       <option value="">請選擇區域</option>
     </select>
     <input id="senderAddress" placeholder="地址" />
-    <button id="saveSender">💾 儲存寄件人</button>
+    <button class="btn" id="saveSender">儲存寄件人</button>
+    <button class="btn reset-btn" id="resetSender">重置寄件人</button>
     <h2>搜尋寄件人</h2>
     <input id="searchSenderName" placeholder="收件人姓名" />
-    <button class="mt-10" id="searchSenderBtn">📂 讀取寄件人</button>
+    <button class="mt-10 btn" id="searchSenderBtn">讀取寄件人</button>
     <h2
       id="toggleSenderListBtn"
       class="flex-row align-item-center justify-content-between"
@@ -34,7 +35,7 @@
       <i id="toggleSenderIcon" class="fas fa-chevron-up"></i>
     </h2>
     <ul id="senderList" style="list-style: none; padding: 0"></ul>
-    <h2>📦 收件人</h2>
+    <h2>收件人</h2>
     <input id="receiverName" placeholder="姓名" />
     <input id="receiverMobile" placeholder="手機" />
     <input id="receiverPhone" placeholder="市話" />
@@ -45,10 +46,13 @@
       <option value="">請選擇區域</option>
     </select>
     <input id="receiverAddress" placeholder="地址" />
-    <button id="saveReceiver">💾 儲存收件人</button>
+    <button class="btn" id="saveReceiver">儲存收件人</button>
+    <button class="btn reset-btn" id="resetReceiver">重置收件人</button>
+
     <h2>搜尋收件人</h2>
     <input id="searchReceiverName" placeholder="收件人姓名" />
-    <button class="mt-10" id="searchReceiverBtn">📂 讀取收件人</button>
+    <button class="mt-10 btn" id="searchReceiverBtn">讀取收件人</button>
+
     <h2
       id="toggleReceiverListBtn"
       class="flex-row align-item-center justify-content-between"
@@ -59,9 +63,9 @@
     <ul id="receiverList" style="list-style: none; padding: 0"></ul>
 
     <hr />
-    <button id="exportBtn">📤 匯出資料</button>
+    <button id="exportBtn">匯出資料</button>
     <input type="file" id="importFile" accept=".json" />
-    <button id="importBtn">📥 匯入資料</button>
+    <button id="importBtn">匯入資料</button>
   </body>
   <script src="lib/zxing-browser.js"></script>
   <script src="selectConfig.js"></script>

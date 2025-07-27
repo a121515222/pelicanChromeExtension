@@ -13,8 +13,18 @@ select {
 }
 
 button {
-  width: 100%;
-  padding: 8px;
+  border: none; /* 去掉邊框 */
+  border-radius: 4px; /* 圓角 */
+  padding: 6px 12px; /* 內距 */
+  font-size: 14px;
+  cursor: pointer;
+
+  /* ✅ 平面化 */
+  box-shadow: none;
+  text-shadow: none;
+}
+button:hover {
+  opacity: 80%;
 }
 
 hr {
@@ -24,6 +34,17 @@ hr {
 video {
   width: 100%;
   height: auto;
+}
+.w-100 {
+  width: 100%;
+}
+.btn {
+  background-color: #0084fffa;
+  color: white;
+}
+.reset-btn {
+  background-color: #f44336; /* 紅色背景 */
+  color: white;
 }
 .flex-row {
   display: flex;
@@ -53,7 +74,7 @@ video {
   padding: 0;
 }
 .list-item.focused .item-card {
-  border: 2px solid #007bff;
+  border: 1px solid #007bff;
   background-color: #eaf3ff;
 }
 .item-card {

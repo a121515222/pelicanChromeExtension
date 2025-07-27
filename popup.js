@@ -78,7 +78,6 @@ function saveReceiver() {
  // 儲存寄件者
  function saveSender() {
   const senderData = getSenderDataFromForm();
-  console.log("senderData", senderData)
   if (!senderData.name) {
     alert("請輸入寄件人姓名");
     return;
@@ -625,7 +624,6 @@ async function searchSenderListResult(keyWord) {
   }   
 async function searchList(searchKeyWord, type, localStorageKey, dataName){
   const data = await getDataFromLocalStorage(type, localStorageKey);
-  console.log("data", data)
     if (!data || !Array.isArray(data)) {
       alert("資料格式錯誤或不存在");
       return;
@@ -659,3 +657,21 @@ function createCollapsibleList({ containerId, toggleBtnId }) {
     icon.className = isCollapsed ? "fas fa-chevron-down" : "fas fa-chevron-up";
   });
 }
+// 清除寄件人表單
+document.getElementById("resetSender").addEventListener("click", () => {
+  document.getElementById("senderName").value = "";
+  document.getElementById("senderMobile").value = "";
+  document.getElementById("senderPhone").value = "";
+  document.getElementById("senderCounty").value = "";
+  document.getElementById("senderDistrict").value = "";
+  document.getElementById("senderAddress").value = "";
+});
+// 清除收件人表單
+document.getElementById("resetReceiver").addEventListener("click", () => {
+  document.getElementById("receiverName").value = "";
+  document.getElementById("receiverMobile").value = "";
+  document.getElementById("receiverPhone").value = "";
+  document.getElementById("receiverCounty").value = "";
+  document.getElementById("receiverDistrict").value = "";
+  document.getElementById("receiverAddress").value = "";
+});
