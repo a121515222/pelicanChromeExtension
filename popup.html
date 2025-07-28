@@ -11,109 +11,118 @@
     <button class="btn w-100" id="scanQRCode">掃描 QR Code</button>
     <video id="video" style="display: none"></video>
     <hr />
-    <h2
-      id="toggleSenderFormBtn"
-      class="flex-row align-item-center justify-content-between"
-    >
-      寄件人
-      <i id="toggleSenderFormIcon" class="fas fa-chevron-up"></i>
-    </h2>
-    <div id="senderForm">
-      <input id="senderName" placeholder="姓名" />
-      <input id="senderMobile" placeholder="手機" />
-      <input id="senderPhone" placeholder="市話" />
-      <select id="senderCounty">
-        <option value="">請選擇縣市</option>
-      </select>
-      <select id="senderDistrict">
-        <option value="">請選擇區域</option>
-      </select>
-      <input id="senderAddress" placeholder="地址" />
-      <button class="btn" id="saveSender">儲存寄件人</button>
-      <button class="btn reset-btn" id="resetSender">重置寄件人</button>
+    <div class="section-bg sender-bg">
+      <h2
+        id="toggleSenderFormBtn"
+        class="flex-row align-item-center justify-content-between"
+      >
+        寄件人
+        <i id="toggleSenderFormIcon" class="fas fa-chevron-up"></i>
+      </h2>
+      <div id="senderForm">
+        <input id="senderName" placeholder="姓名" />
+        <input id="senderMobile" placeholder="手機" />
+        <input id="senderPhone" placeholder="市話" />
+        <select id="senderCounty">
+          <option value="">請選擇縣市</option>
+        </select>
+        <select id="senderDistrict">
+          <option value="">請選擇區域</option>
+        </select>
+        <input id="senderAddress" placeholder="地址" />
+        <button class="btn" id="saveSender">儲存寄件人</button>
+        <button class="btn reset-btn" id="resetSender">重置寄件人</button>
+      </div>
+
+      <h2>搜尋寄件人</h2>
+      <input id="searchSenderName" placeholder="收件人姓名" />
+      <button class="mt-10 btn" id="searchSenderBtn">讀取寄件人</button>
+      <h2
+        id="toggleSenderListBtn"
+        class="flex-row align-item-center justify-content-between"
+      >
+        寄件人列表
+        <i id="toggleSenderIcon" class="fas fa-chevron-up"></i>
+      </h2>
+      <ul id="senderList" style="list-style: none; padding: 0"></ul>
     </div>
 
-    <h2>搜尋寄件人</h2>
-    <input id="searchSenderName" placeholder="收件人姓名" />
-    <button class="mt-10 btn" id="searchSenderBtn">讀取寄件人</button>
-    <h2
-      id="toggleSenderListBtn"
-      class="flex-row align-item-center justify-content-between"
-    >
-      寄件人列表
-      <i id="toggleSenderIcon" class="fas fa-chevron-up"></i>
-    </h2>
-    <ul id="senderList" style="list-style: none; padding: 0"></ul>
     <hr />
-    <h2
-      id="toggleReceiverFormBtn"
-      class="flex-row align-item-center justify-content-between"
-    >
-      收件人
-      <i id="toggleReceiverFormIcon" class="fas fa-chevron-up"></i>
-    </h2>
-    <div id="receiverForm">
-      <input id="receiverName" placeholder="姓名" />
-      <input id="receiverMobile" placeholder="手機" />
-      <input id="receiverPhone" placeholder="市話" />
-      <select id="receiverCounty">
-        <option value="">請選擇縣市</option>
-      </select>
-      <select id="receiverDistrict">
-        <option value="">請選擇區域</option>
-      </select>
-      <input id="receiverAddress" placeholder="地址" />
-      <button class="btn" id="saveReceiver">儲存收件人</button>
-      <button class="btn reset-btn" id="resetReceiver">重置收件人</button>
+    <div class="section-bg receiver-bg">
+      <h2
+        id="toggleReceiverFormBtn"
+        class="flex-row align-item-center justify-content-between"
+      >
+        收件人
+        <i id="toggleReceiverFormIcon"></i>
+      </h2>
+      <div id="receiverForm">
+        <input id="receiverName" placeholder="姓名" />
+        <input id="receiverMobile" placeholder="手機" />
+        <input id="receiverPhone" placeholder="市話" />
+        <select id="receiverCounty">
+          <option value="">請選擇縣市</option>
+        </select>
+        <select id="receiverDistrict">
+          <option value="">請選擇區域</option>
+        </select>
+        <input id="receiverAddress" placeholder="地址" />
+        <button class="btn" id="saveReceiver">儲存收件人</button>
+        <button class="btn reset-btn" id="resetReceiver">重置收件人</button>
+      </div>
+
+      <h2>搜尋收件人</h2>
+      <input id="searchReceiverName" placeholder="收件人姓名" />
+      <button class="mt-10 btn" id="searchReceiverBtn">讀取收件人</button>
+
+      <h2
+        id="toggleReceiverListBtn"
+        class="flex-row align-item-center justify-content-between"
+      >
+        收件人列表
+        <i id="toggleReceiverIcon" class="fas fa-chevron-up"></i>
+      </h2>
+      <ul id="receiverList" style="list-style: none; padding: 0"></ul>
     </div>
 
-    <h2>搜尋收件人</h2>
-    <input id="searchReceiverName" placeholder="收件人姓名" />
-    <button class="mt-10 btn" id="searchReceiverBtn">讀取收件人</button>
-
-    <h2
-      id="toggleReceiverListBtn"
-      class="flex-row align-item-center justify-content-between"
-    >
-      收件人列表
-      <i id="toggleReceiverIcon" class="fas fa-chevron-up"></i>
-    </h2>
-    <ul id="receiverList" style="list-style: none; padding: 0"></ul>
     <hr />
-    <h2
-      id="toggleCargoBtn"
-      class="flex-row align-item-center justify-content-between"
-    >
-      貨物
-      <i id="toggleCargoFormIcon" class="fas fa-chevron-up"></i>
-    </h2>
-    <div id="cargoForm">
-      <input id="cargoName" placeholder="內容物" />
-      <input id="cargoPrice" placeholder="內容物價值" />
-      <select id="selectDeliverTemperature">
-        <option value="常溫">常溫</option>
-        <option value="冷藏">冷藏</option>
-        <option value="冷凍">冷凍</option>
-      </select>
-      <select id="selectDeliverTime">
-        <option value="00">不指定</option>
-        <option value="01">13時前</option>
-        <option value="02">14-18時前</option>
-      </select>
-      <button class="btn" id="saveCargo">儲存貨物</button>
-      <button class="btn reset-btn" id="resetCargo">重置貨物</button>
+    <div class="section-bg cargo-bg">
+      <h2
+        id="toggleCargoFormBtn"
+        class="flex-row align-item-center justify-content-between"
+      >
+        貨物
+        <i id="toggleCargoFormIcon" class="fas fa-chevron-up"></i>
+      </h2>
+      <div id="cargoForm">
+        <input id="cargoName" placeholder="內容物" />
+        <input id="cargoPrice" placeholder="內容物價值" />
+        <select id="selectDeliverTemperature">
+          <option value="常溫">常溫</option>
+          <option value="冷藏">冷藏</option>
+          <option value="冷凍">冷凍</option>
+        </select>
+        <select id="selectDeliverTime">
+          <option value="00">不指定</option>
+          <option value="01">13時前</option>
+          <option value="02">14-18時前</option>
+        </select>
+        <button class="btn" id="saveCargo">儲存貨物</button>
+        <button class="btn reset-btn" id="resetCargo">重置貨物</button>
+      </div>
+      <h2>搜尋貨物</h2>
+      <input type="text" id="searchCargoName" placeholder="貨物內容" />
+      <button class="mt-10 btn" id="searchCargoBtn">讀取貨物</button>
+      <h2
+        id="toggleCargoListBtn"
+        class="flex-row align-item-center justify-content-between"
+      >
+        貨物列表
+        <i id="toggleCargoIcon" class="fas fa-chevron-up"></i>
+      </h2>
+      <ul id="cargoList" style="list-style: none; padding: 0"></ul>
     </div>
-    <h2>搜尋貨物</h2>
-    <input type="text" id="searchCargoName" placeholder="貨物內容" />
-    <button class="mt-10 btn" id="searchCargoBtn">讀取貨物</button>
-    <h2
-      id="toggleReceiverListBtn"
-      class="flex-row align-item-center justify-content-between"
-    >
-      貨物列表
-      <i id="toggleCargoIcon" class="fas fa-chevron-up"></i>
-    </h2>
-    <ul id="cargoList" style="list-style: none; padding: 0"></ul>
+
     <hr />
     <button id="exportBtn">匯出資料</button>
     <input type="file" id="importFile" accept=".json" />

@@ -695,15 +695,25 @@ document.addEventListener("DOMContentLoaded", () => {
     containerId: "senderList",
     toggleBtnId: "toggleSenderListBtn"
   });
+  // 貨物表摺疊
+  createCollapsibleList({
+    containerId: "cargoList",
+    toggleBtnId: "toggleCargoListBtn"
+  });
+  // 收寄人表單摺疊
+  createCollapsibleList({
+    containerId: "senderForm",
+    toggleBtnId: "toggleSenderFormBtn"
+  });
   // 收件人表單摺疊
   createCollapsibleList({
     containerId: "receiverForm",
     toggleBtnId: "toggleReceiverFormBtn"
   });
-  // 寄件人表單摺疊
+  // 貨物表單摺疊
   createCollapsibleList({
-    containerId: "senderForm",
-    toggleBtnId: "toggleSenderFormBtn"
+    containerId: "cargoForm",
+    toggleBtnId: "toggleCargoFormBtn"
   });
 });
 async function searchReceiverListResult(keyWord) {

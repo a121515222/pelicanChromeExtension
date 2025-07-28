@@ -7,9 +7,10 @@ body {
 input,
 select {
   display: block;
-  margin-bottom: 5px;
+  margin: 5px auto;
   width: 100%;
   padding: 4px;
+  box-sizing: border-box;
 }
 
 button {
@@ -116,4 +117,25 @@ video {
 .item-actions .delete-btn {
   background-color: #f44336;
   color: white;
+}
+.section-bg {
+  padding: 10px;
+  border-radius: 5px;
+  margin-bottom: 15px;
+}
+.section-bg {
+  padding: 10px;
+  border-radius: 5px;
+  margin-bottom: 15px;
+}
+.sender-bg {
+  background-color: #a4cef3ff; /* 淡藍色 */
+}
+
+.receiver-bg {
+  background-color: #c6f0b1ff; /* 淡綠色 */
+}
+
+.cargo-bg {
+  background-color: #f1d08dff; /* 淡橘色 */
 }
