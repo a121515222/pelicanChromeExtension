@@ -95,7 +95,24 @@ function saveReceiver() {
     );
   });
 }
- 
+// 儲存貨物資料
+function saveCargo() {
+  const cargoData = getCargoDataFromForm();
+  console.log("saveCargoData", cargoData)
+  if (!cargoData.name) return alert("請輸入貨物名稱");
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    chrome.tabs.sendMessage(
+      tabs[0].id,
+      { type: 'saveCargo', payload: cargoData },
+      (response) => {
+        if (response && response.success) {
+        } else {
+          alert("儲存失敗");
+          }
+        }
+      );
+    });
+}
 // 取得收件人dom內資料
 function getReceiverDataFromForm() {
     return {
@@ -117,6 +134,15 @@ function getSenderDataFromForm() {
     district: document.getElementById("senderDistrict").value,
     address: document.getElementById("senderAddress").value,
   };
+}
+// 取得貨物dom內資料
+function getCargoDataFromForm() {
+  return {
+    name: document.getElementById("cargoName").value,
+    price:document.getElementById("cargoPrice").value,
+    deliverTemperature: document.getElementById("selectDeliverTemperature").value,
+    selectDeliverTime: document.getElementById("selectDeliverTime").value,
+  }
 }
 
 //載入localStorage receiver資料
@@ -565,11 +591,12 @@ function chromeTabsQuery({
 document.addEventListener("DOMContentLoaded", () => {
   const saveReceiverBtn = document.getElementById("saveReceiver");
   const saveSenderBtn = document.getElementById("saveSender")
+  const saveCargoBtn = document.getElementById("saveCargo")
   const loadReceiverBtn = document.getElementById("searchReceiverBtn");
   const searchReceiverInput = document.getElementById('searchReceiverName');
   const loadSenderBtn = document.getElementById("searchSenderBtn");
   const searchSenderInput = document.getElementById('searchSenderName')
-
+  
 
   function setReceiverToFrom(receiver) {
     document.getElementById("receiverName").value = receiver.name || "";
@@ -583,6 +610,8 @@ document.addEventListener("DOMContentLoaded", () => {
   saveReceiverBtn.addEventListener("click", saveReceiver);
   // 儲存寄件人資料
   saveSenderBtn.addEventListener("click", saveSender);
+  // 存貨物資料
+  saveCargoBtn.addEventListener("click", saveCargo)
   // 收件人搜尋功能
   searchReceiverInput.addEventListener('input', debounce(() => {
     const receiverSearchKeyWord = searchReceiverInput.value;

@@ -135,23 +135,51 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       return true;
     }
 
-    let senders = JSON.parse(localStorage.getItem("senders") || "[]");
-    const index = senders.findIndex(r => r.name === senderData.name);
+      let senders = JSON.parse(localStorage.getItem("senders") || "[]");
+      const index = senders.findIndex(r => r.name === senderData.name);
 
-    if (index >= 0) {
-      senders[index] = senderData;
-    } else {
-      senders.push(senderData);
+      if (index >= 0) {
+        senders[index] = senderData;
+      } else {
+        senders.push(senderData);
+      }
+
+      localStorage.setItem("senders", JSON.stringify(senders));
+      sendResponse({ success: true });
+    } catch (e) {
+      console.error("儲存寄件人失敗", e);
+      sendResponse({ success: false, error: String(e) });
+    }
+    return true;
+  }
+  // 儲存貨物
+  if (request.type === "saveCargo") {
+  try {
+    console.log("saveCargo", request)
+    const cargoData = request.payload;
+    if (!cargoData.name) {
+      console.error("無效的貨物資料", cargoData);
+      sendResponse({ success: false, error: "Invalid cargo data" });
+      return true;
     }
 
-    localStorage.setItem("senders", JSON.stringify(senders));
-    sendResponse({ success: true });
-  } catch (e) {
-    console.error("儲存寄件人失敗", e);
-    sendResponse({ success: false, error: String(e) });
+      let cargos = JSON.parse(localStorage.getItem("cargos") || "[]");
+      const index = cargos.findIndex(r => r.name === cargoData.name);
+
+      if (index >= 0) {
+        cargos[index] = cargoData;
+      } else {
+        cargos.push(cargoData);
+      }
+
+      localStorage.setItem("cargos", JSON.stringify(cargos));
+      sendResponse({ success: true });
+    } catch (e) {
+      console.error("儲存貨物失敗", e);
+      sendResponse({ success: false, error: String(e) });
+    }
+    return true;
   }
-  return true;
-}
 
   // 儲存修改後的收件人資料
   if (request.type === 'saveModifyReceiver') {
