@@ -140,7 +140,7 @@ function getCargoDataFromForm() {
     name: document.getElementById("cargoName").value,
     price:document.getElementById("cargoPrice").value,
     deliverTemperature: document.getElementById("selectDeliverTemperature").value,
-    selectDeliverTime: document.getElementById("selectDeliverTime").value,
+    deliverTime: document.getElementById("selectDeliverTime").value,
   }
 }
 

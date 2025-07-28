@@ -331,6 +331,48 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       sendResponse({ success: false, error: String(e) });
     }
   }
-
+// 填入貨物資料到網頁中
+  if (request.type === 'fillCargo') {
+    try {
+      const data = request.payload;
+      const inputs = document.querySelectorAll("input");
+      const selects = document.querySelectorAll("select");
+      const radios = document.querySelectorAll('input[type="radio"]');
+      // 計算有多少radio 只有一個的就是常溫單，兩個就是低溫單
+      const radioCount = radios.length;
+      // 
+      if (radioCount === 1) {
+        console.log("常溫單")
+        inputs[12].value = data.name;
+        inputs[12].dispatchEvent(new Event("input"));
+        inputs[13].value = data.price;
+        inputs[13].dispatchEvent(new Event("input"));
+        if (data.deliverTemperature === "常溫" && radios.length > 0) {
+          radios[0].checked = true;
+          radios[0].dispatchEvent(new Event("change", { bubbles: true }));
+        }
+      } else if (radioCount === 2) {
+        console.log("低溫單")
+        inputs[13].value = data.name;
+        inputs[13].dispatchEvent(new Event("input"));
+        inputs[14].value = data.price;
+        inputs[14].dispatchEvent(new Event("input"));
+        if (data.deliverTemperature === "冷凍" && radios.length > 0) {
+          radios[0].checked = true;
+          radios[0].dispatchEvent(new Event("change", { bubbles: true }));
+        } else if (data.deliverTemperature === "冷藏" && radios.length > 0 ) {
+          radios[1].checked = true;
+          radios[1].dispatchEvent(new Event("change", { bubbles: true }));
+        }
+      }
+      console.log("deliverTime")
+      selects[4].value = data.deliverTime;
+      selects[4].dispatchEvent(new Event("change"));
+      sendResponse({ success: true });
+    } catch (e) {
+      console.error("填入貨物資料失敗", e);
+      sendResponse({ success: false, error: String(e) });
+    }
+  }
 });
 
