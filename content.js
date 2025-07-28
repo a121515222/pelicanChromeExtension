@@ -221,11 +221,15 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       if (data.county) {
         selects[2].value = data.county;
         selects[2].dispatchEvent(new Event("change")); // 可能會觸發區域更新
-      }
+        // 等待區域選單更新後再填 district
       if (data.district) {
-        selects[3].value = data.district;
-        selects[3].dispatchEvent(new Event("change")); // 可觸發地址同步
+        setTimeout(() => {
+          selects[3].value = data.district;
+          selects[3].dispatchEvent(new Event("change"));
+        } , 300); // 視網站的 JS 更新速度調整
+    }
       }
+      
     }
 
     sendResponse({ success: true });
@@ -265,13 +269,17 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     const selects = document.querySelectorAll("select");
     if (selects.length >= 4) {
       if (data.county) {
-        selects[0].value = data.county;
-        selects[0].dispatchEvent(new Event("change")); // 可能會觸發區域更新
-      }
-      if (data.district) {
+    selects[0].value = data.county;
+    selects[0].dispatchEvent(new Event("change"));
+
+    if (data.district) {
+      setTimeout(() => {
         selects[1].value = data.district;
-        selects[1].dispatchEvent(new Event("change")); // 可觸發地址同步
-      }
+        selects[1].dispatchEvent(new Event("change"));
+      }, 300); // 延遲時間視網站 JS 的更新速度調整
+  }
+}
+      
     }
 
       sendResponse({ success: true });
