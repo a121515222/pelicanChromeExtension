@@ -4,97 +4,97 @@ function isFormPage() {
   return document.querySelector('#input-51') !== null;
 }
 
-function fillForm() {
-  // 從 localStorage 讀取資料
-  let data = { sender: {}, recipients: [] };
-  try {
-    const json = localStorage.getItem('deliveryData');
-    if (json) {
-      data = JSON.parse(json);
-    }
-  } catch (e) {
-    console.error('解析 localStorage 資料失敗', e);
-  }
+// function fillForm() {
+//   // 從 localStorage 讀取資料
+//   let data = { sender: {}, recipients: [] };
+//   try {
+//     const json = localStorage.getItem('deliveryData');
+//     if (json) {
+//       data = JSON.parse(json);
+//     }
+//   } catch (e) {
+//     console.error('解析 localStorage 資料失敗', e);
+//   }
 
-  // 確保資料結構正確
-  data.sender = data.sender || {};
-  data.recipients = data.recipients || [];
-  const latestRecipient = data.recipients.length > 0 ? data.recipients[data.recipients.length - 1] : {};
+//   // 確保資料結構正確
+//   data.sender = data.sender || {};
+//   data.recipients = data.recipients || [];
+//   const latestRecipient = data.recipients.length > 0 ? data.recipients[data.recipients.length - 1] : {};
 
-  try {
-    // ===== 📨 寄件人 =====
-    const senderNameInput = document.querySelector('#input-51');
-    if (senderNameInput) senderNameInput.value = data.sender.senderName || '';
+//   try {
+//     // ===== 📨 寄件人 =====
+//     const senderNameInput = document.querySelector('#input-51');
+//     if (senderNameInput) senderNameInput.value = data.sender.senderName || '';
 
-    const senderMobileInput = document.querySelector('#input-54');
-    if (senderMobileInput) senderMobileInput.value = data.sender.senderMobile || '';
+//     const senderMobileInput = document.querySelector('#input-54');
+//     if (senderMobileInput) senderMobileInput.value = data.sender.senderMobile || '';
 
-    const senderPhoneInput = document.querySelector('#input-57');
-    if (senderPhoneInput) senderPhoneInput.value = data.sender.senderPhone || '';
+//     const senderPhoneInput = document.querySelector('#input-57');
+//     if (senderPhoneInput) senderPhoneInput.value = data.sender.senderPhone || '';
 
-    const senderAddressInput = document.querySelector('#input-62');
-    if (senderAddressInput) senderAddressInput.value = data.sender.senderAddress || '';
+//     const senderAddressInput = document.querySelector('#input-62');
+//     if (senderAddressInput) senderAddressInput.value = data.sender.senderAddress || '';
 
-    const selects = document.querySelectorAll('select');
-    if (selects.length >= 4) {
-      if (data.sender.senderCounty) {
-        selects[0].value = data.sender.senderCounty;
-        selects[0].dispatchEvent(new Event('change'));
-      }
+//     const selects = document.querySelectorAll('select');
+//     if (selects.length >= 4) {
+//       if (data.sender.senderCounty) {
+//         selects[0].value = data.sender.senderCounty;
+//         selects[0].dispatchEvent(new Event('change'));
+//       }
 
-      if (data.sender.senderDistrict) {
-        selects[1].value = data.sender.senderDistrict;
-        selects[1].dispatchEvent(new Event('change'));
-      }
+//       if (data.sender.senderDistrict) {
+//         selects[1].value = data.sender.senderDistrict;
+//         selects[1].dispatchEvent(new Event('change'));
+//       }
 
-      // ===== 📦 收件人 =====
-      if (latestRecipient.receiverCounty) {
-        selects[2].value = latestRecipient.receiverCounty;
-        selects[2].dispatchEvent(new Event('change'));
-      }
+//       // ===== 📦 收件人 =====
+//       if (latestRecipient.receiverCounty) {
+//         selects[2].value = latestRecipient.receiverCounty;
+//         selects[2].dispatchEvent(new Event('change'));
+//       }
 
-      if (latestRecipient.receiverDistrict) {
-        selects[3].value = latestRecipient.receiverDistrict;
-        selects[3].dispatchEvent(new Event('change'));
-      }
-    }
+//       if (latestRecipient.receiverDistrict) {
+//         selects[3].value = latestRecipient.receiverDistrict;
+//         selects[3].dispatchEvent(new Event('change'));
+//       }
+//     }
 
-    const receiverNameInput = document.querySelector('#input-67');
-    if (receiverNameInput) receiverNameInput.value = latestRecipient.receiverName || '';
+//     const receiverNameInput = document.querySelector('#input-67');
+//     if (receiverNameInput) receiverNameInput.value = latestRecipient.receiverName || '';
 
-    const receiverMobileInput = document.querySelector('#input-70');
-    if (receiverMobileInput) receiverMobileInput.value = latestRecipient.receiverMobile || '';
+//     const receiverMobileInput = document.querySelector('#input-70');
+//     if (receiverMobileInput) receiverMobileInput.value = latestRecipient.receiverMobile || '';
 
-    const receiverPhoneInput = document.querySelector('#input-73');
-    if (receiverPhoneInput) receiverPhoneInput.value = latestRecipient.receiverPhone || '';
+//     const receiverPhoneInput = document.querySelector('#input-73');
+//     if (receiverPhoneInput) receiverPhoneInput.value = latestRecipient.receiverPhone || '';
 
-    const receiverAddressInput = document.querySelector('#input-78');
-    if (receiverAddressInput) receiverAddressInput.value = latestRecipient.receiverAddress || '';
-  } catch (e) {
-    console.error('填寫表單失敗', e);
-  }
-}
+//     const receiverAddressInput = document.querySelector('#input-78');
+//     if (receiverAddressInput) receiverAddressInput.value = latestRecipient.receiverAddress || '';
+//   } catch (e) {
+//     console.error('填寫表單失敗', e);
+//   }
+// }
 
 // 檢查頁面是否是表單頁面，並延遲執行以確保動態元素載入
-function tryFillForm(maxAttempts = 5, interval = 1000) {
-  let attempts = 0;
-  const intervalId = setInterval(() => {
-    if (isFormPage()) {
-      clearInterval(intervalId);
-      console.log('找到表單頁面，開始填入資料');
-      fillForm();
-    } else if (attempts >= maxAttempts) {
-      clearInterval(intervalId);
-      console.log('未找到表單元素，停止嘗試');
-    }
-    attempts++;
-  }, interval);
-}
+// function tryFillForm(maxAttempts = 5, interval = 1000) {
+//   let attempts = 0;
+//   const intervalId = setInterval(() => {
+//     if (isFormPage()) {
+//       clearInterval(intervalId);
+//       console.log('找到表單頁面，開始填入資料');
+//       fillForm();
+//     } else if (attempts >= maxAttempts) {
+//       clearInterval(intervalId);
+//       console.log('未找到表單元素，停止嘗試');
+//     }
+//     attempts++;
+//   }, interval);
+// }
 
 // 在頁面載入時執行
 document.addEventListener('DOMContentLoaded', () => {
   console.log('content.js 已載入');
-  tryFillForm();
+  // tryFillForm();
 });
 
 // 監聽來自 popup.js 的儲存請求;
@@ -155,7 +155,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   // 儲存貨物
   if (request.type === "saveCargo") {
   try {
-    console.log("saveCargo", request)
     const cargoData = request.payload;
     if (!cargoData.name) {
       console.error("無效的貨物資料", cargoData);
@@ -342,7 +341,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       const radioCount = radios.length;
       // 
       if (radioCount === 1) {
-        console.log("常溫單")
         inputs[12].value = data.name;
         inputs[12].dispatchEvent(new Event("input"));
         inputs[13].value = data.price;
@@ -352,7 +350,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           radios[0].dispatchEvent(new Event("change", { bubbles: true }));
         }
       } else if (radioCount === 2) {
-        console.log("低溫單")
         inputs[13].value = data.name;
         inputs[13].dispatchEvent(new Event("input"));
         inputs[14].value = data.price;
@@ -365,7 +362,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           radios[1].dispatchEvent(new Event("change", { bubbles: true }));
         }
       }
-      console.log("deliverTime")
       selects[4].value = data.deliverTime;
       selects[4].dispatchEvent(new Event("change"));
       sendResponse({ success: true });

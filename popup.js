@@ -375,12 +375,12 @@ function setSenderToInputs(data) {
 
   document.getElementById("senderAddress").value = data.address || "";
 }
-function setCargoToInputs() {
+function setCargoToInputs(data) {
   if (!data) return;
   document.getElementById("cargoName").value = data.name || "";
   document.getElementById("cargoPrice").value = data.price || "";
   document.getElementById("selectDeliverTemperature").value = data.deliverTemperature || "";
-  document.getElementById("selectDeliverTime").value = data.selectDeliverTime || "";
+  document.getElementById("selectDeliverTime").value = data.deliverTime || "";
 }
 // 渲染收件人清單
 function renderReceiverList(receivers) {
