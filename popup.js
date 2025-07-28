@@ -771,3 +771,10 @@ document.getElementById("resetReceiver").addEventListener("click", () => {
   document.getElementById("receiverDistrict").value = "";
   document.getElementById("receiverAddress").value = "";
 });
+// 清除貨物表單
+document.getElementById("resetCargo").addEventListener("click", () => {
+  document.getElementById("cargoName").value = "";
+  document.getElementById("cargoPrice").value = "";
+  document.getElementById("selectDeliverTemperature").value = "";
+  document.getElementById("selectDeliverTime").value = "";
+});

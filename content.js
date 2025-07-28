@@ -348,6 +348,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         if (data.deliverTemperature === "常溫" && radios.length > 0) {
           radios[0].checked = true;
           radios[0].dispatchEvent(new Event("change", { bubbles: true }));
+        } else {
+          alert(`所選貨物是${data.deliverTemperature}`)
         }
       } else if (radioCount === 2) {
         inputs[13].value = data.name;
@@ -360,6 +362,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         } else if (data.deliverTemperature === "冷藏" && radios.length > 0 ) {
           radios[1].checked = true;
           radios[1].dispatchEvent(new Event("change", { bubbles: true }));
+        } else {
+          alert(`所選貨物是${data.deliverTemperature}`)
         }
       }
       selects[4].value = data.deliverTime;
