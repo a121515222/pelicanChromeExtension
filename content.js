@@ -205,6 +205,18 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     }
     return true; // <== 重要，否則 popup 端會以為沒有回應而報錯
   }
+  // 儲存修改後的貨物資料
+  if (request.type === 'saveModifyCargo') {
+    try {
+      const cargos = request.payload;
+      localStorage.setItem('cargos', JSON.stringify(cargos));
+      sendResponse({ success: true });
+    } catch (e) {
+      console.error("處理 saveCargo 錯誤", e);
+      sendResponse({ success: false, error: String(e) });
+    }
+    return true; // <== 重要，否則 popup 端會以為沒有回應而報錯
+  }
   // 取得收件人資料
   if (request.type === "getReceivers") {
     const receivers = JSON.parse(localStorage.getItem("receivers") || "[]");
@@ -215,6 +227,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.type === "getSenders") {
     const senders = JSON.parse(localStorage.getItem("senders") || "[]");
     sendResponse({ success: true, senders });
+    return true
+  }
+  // 取得貨物資料
+  if (request.type === "getCargos") {
+    const cargos = JSON.parse(localStorage.getItem("cargos") || "[]");
+    sendResponse({ success: true, cargos });
     return true
   }
   // 填入收件人資料到網頁中
@@ -257,9 +275,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         } , 300); // 視網站的 JS 更新速度調整
     }
       }
-      
     }
-
     sendResponse({ success: true });
   } catch (e) {
     console.error("填入收件人資料失敗", e);
@@ -307,7 +323,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       }, 300); // 延遲時間視網站 JS 的更新速度調整
   }
 }
-      
     }
 
       sendResponse({ success: true });

@@ -98,7 +98,6 @@ function saveReceiver() {
 // 儲存貨物資料
 function saveCargo() {
   const cargoData = getCargoDataFromForm();
-  console.log("saveCargoData", cargoData)
   if (!cargoData.name) return alert("請輸入貨物名稱");
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     chrome.tabs.sendMessage(
@@ -376,6 +375,13 @@ function setSenderToInputs(data) {
 
   document.getElementById("senderAddress").value = data.address || "";
 }
+function setCargoToInputs() {
+  if (!data) return;
+  document.getElementById("cargoName").value = data.name || "";
+  document.getElementById("cargoPrice").value = data.price || "";
+  document.getElementById("selectDeliverTemperature").value = data.deliverTemperature || "";
+  document.getElementById("selectDeliverTime").value = data.selectDeliverTime || "";
+}
 // 渲染收件人清單
 function renderReceiverList(receivers) {
   renderList({
@@ -447,6 +453,41 @@ function renderSenderList(senders){
     }
   });
 }
+function renderCargoList(cargos) {
+  renderList({
+    containerId: "cargoList",
+    data: cargos,
+    itemNameKey: "name",
+    onFill: (cargo) => {
+      chromeTabsQuery({
+      type: "fillCargo",
+      payload: cargo,
+      alertMessage: "填入失敗",
+      onSuccess: () => console.log("填入完成"),
+      onError: (err) => console.error("填入錯誤:", err),
+      expectResponse:false
+  });
+    },
+    onDelete: (_, index) => {
+      deleteList({
+        indexToDelete: index,
+        type: "getCargos",
+        localStorageKey: "cargos",
+        confirmMessage: "確認刪除這個收件人嗎?",
+        dataName: "name",
+        successCallback: () => getDataAndRender({
+          type: "getCargos",
+          localStorageKey: "cargos",
+          renderCallback: renderCargoList
+        }),
+        saveType: "saveModifyCargos"
+      });
+    },
+    onItemClick: (cargo) => {
+      setCargoToInputs(cargo);
+    }
+  });
+}
 // 渲染清單
 function renderList({
   containerId,
@@ -468,7 +509,6 @@ function renderList({
     console.error("傳進來的不是陣列", data);
     return;
   }
-
   data.forEach((item, index) => {
     const li = document.createElement("li");
     li.classList.add("list-item");
@@ -595,7 +635,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const loadReceiverBtn = document.getElementById("searchReceiverBtn");
   const searchReceiverInput = document.getElementById('searchReceiverName');
   const loadSenderBtn = document.getElementById("searchSenderBtn");
-  const searchSenderInput = document.getElementById('searchSenderName')
+  const searchSenderInput = document.getElementById('searchSenderName');
+  const loadCargoBtn =document.getElementById("searchCargoBtn");
+  const searchCargoInput = document.getElementById("searchCargoName");
   
 
   function setReceiverToFrom(receiver) {
@@ -633,6 +675,16 @@ document.addEventListener("DOMContentLoaded", () => {
     // 從網頁 content script 取得 localStorage 的收件人清單
     searchSenderListResult(senderSearchKeyWord)
   });
+  // 貨物搜索功能
+  searchCargoInput.addEventListener('input', debounce(()=> {
+    const cargoSearchKeyWord = searchCargoInput.value;
+    searchCargoListResult(cargoSearchKeyWord)
+  }, 300));
+  loadCargoBtn.addEventListener("click", () => {
+    const cargoSearchKeyWord = document.getElementById('searchCargoName').value
+    // 從網頁 content script 取得 localStorage 的收件人清單
+    searchCargoListResult(cargoSearchKeyWord)
+  });
   // 收件人列表摺疊
   createCollapsibleList({
     containerId: "receiverList",
@@ -661,7 +713,11 @@ async function searchReceiverListResult(keyWord) {
 async function searchSenderListResult(keyWord) {
   const result = await searchList(keyWord, "getSenders", "senders", "name")
   renderSenderList(result)
-  }   
+  }
+async function searchCargoListResult(keyWord) {
+  const result = await searchList(keyWord, "getCargos", "cargos", "name")
+  renderCargoList(result)
+  }     
 async function searchList(searchKeyWord, type, localStorageKey, dataName){
   const data = await getDataFromLocalStorage(type, localStorageKey);
     if (!data || !Array.isArray(data)) {
