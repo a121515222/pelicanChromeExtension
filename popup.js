@@ -45,176 +45,270 @@ function loadReceiverData(data) {
   loadDistricts(receiverCountySelect.value, receiverDistrictSelect);
   receiverDistrictSelect.value = data.receiverDistrict || '';
 }
-// 儲存收件者
-async function saveReceiver() {
-  const receiverData = getReceiverDataFromForm();
-  if (!receiverData.name) return alert("請輸入收件人姓名");
-  // 生成 id
-  const id = Date.now().toString()
-  const receivers = await getDataFromLocalStorage("getReceivers", "receivers");
-  const sameNameList = receivers.filter(r => r.name === receiverData.name);
-  const sameIdIndex = receivers.findIndex(r => r.id === receiverData.id);
- if (sameNameList.length > 0) {
-    const shouldSave = confirm(`已有同名的收件人 ${receiverData.name}，需要另存嗎？`);
+// // 儲存收件者
+// async function saveReceiver() {
+//   const receiverData = getReceiverDataFromForm();
+//   if (!receiverData.name) return alert("請輸入收件人姓名");
+//   // 生成 id
+//   const id = Date.now().toString()
+//   const receivers = await getDataFromLocalStorage("getReceivers", "receivers");
+//   const sameNameList = receivers.filter(r => r.name === receiverData.name);
+//   const sameIdIndex = receivers.findIndex(r => r.id === receiverData.id);
+//  if (sameNameList.length > 0) {
+//     const shouldSave = confirm(`已有同名的收件人 ${receiverData.name}，需要另存嗎？`);
 
+//     if (shouldSave) {
+//       // 另存一筆新的（產生新 id）
+//       receiverData.id = id;
+//       receivers.push(receiverData);
+//     } else {
+//       if (sameIdIndex !== -1) {
+//         // 用 id 找到舊資料 → 更新它
+//         receivers[sameIdIndex] = receiverData;
+//       } else {
+//         // 同名但找不到 id → 直接覆蓋第一筆同名
+//         const firstSameNameIndex = receivers.findIndex(r => r.name === receiverData.name);
+//         receiverData.id = receivers[firstSameNameIndex].id;
+//         receivers[firstSameNameIndex] = receiverData;
+//       }
+//     }
+//   } else {
+//     // 全新寄件人
+//     receiverData.id = id;
+//     receivers.push(receiverData);
+//   }
+
+//   // 向網頁的 content script 發送儲存請求
+//   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+//     chrome.tabs.sendMessage(
+//       tabs[0].id,
+//       { type: 'saveReceiver', payload: receivers },
+//       (response) => {
+//         if (response && response.success) {
+//           // 成功儲存後 如果search有東西就重新搜尋，如果沒有就移除list
+//           const senderSearchKeyWord = document.getElementById('searchReceiverName').value;
+//           if (senderSearchKeyWord) {
+//             searchReceiverListResult()(senderSearchKeyWord);
+//           } else {
+//             const receiverList = document.getElementById('receiverList');
+//             while (receiverList.firstChild) {
+//               receiverList.removeChild(receiverList.firstChild);
+//             }
+//           }
+//         } else {
+//           alert("儲存失敗");
+//           }
+//         }
+//       );
+//     });
+//   }
+//  // 儲存寄件者
+//  async function saveSender() {
+//   const senderData = getSenderDataFromForm();
+//   if (!senderData.name) {
+//     alert("請輸入寄件人姓名");
+//     return;
+//   }
+//   // 生成 id
+//   const id = Date.now().toString();
+//   const senders = await getDataFromLocalStorage("getSenders", "senders");
+//   const sameNameList = senders.filter(r => r.name === senderData.name);
+//   const sameIdIndex = senders.findIndex(r => r.id === senderData.id);
+
+//   if (sameNameList.length > 0) {
+//     const shouldSave = confirm(`已有同名的寄件人 ${senderData.name}，需要另存嗎？`);
+
+//     if (shouldSave) {
+//       // 另存一筆新的（產生新 id）
+//       senderData.id = id;
+//       senders.push(senderData);
+//     } else {
+//       if (sameIdIndex !== -1) {
+//         // 用 id 找到舊資料 → 更新它
+//         senders[sameIdIndex] = senderData;
+//       } else {
+//         // 同名但找不到 id → 直接覆蓋第一筆同名
+//         const firstSameNameIndex = senders.findIndex(r => r.name === senderData.name);
+//         senderData.id = senders[firstSameNameIndex].id;
+//         senders[firstSameNameIndex] = senderData;
+//       }
+//     }
+//   } else {
+//     // 全新寄件人
+//     senderData.id = id;
+//     senders.push(senderData);
+//   }
+//   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+//     chrome.tabs.sendMessage(
+//       tabs[0].id,
+//       { type: "saveSender", payload: senders },
+//       (response) => {
+//         if (response && response.success) {
+//           // 成功儲存後 如果search有東西就重新搜尋，如果沒有就移除list
+//           const senderSearchKeyWord = document.getElementById('searchSenderName').value;
+//           if (senderSearchKeyWord) {
+//             searchSenderListResult(senderSearchKeyWord);
+//           } else {
+//             const senderList = document.getElementById('senderList');
+//             while (senderList.firstChild) {
+//               senderList.removeChild(senderList.firstChild);
+//             }
+//           }
+//         } else {
+//           alert("儲存寄件人失敗");
+//         }
+//       }
+//     );
+//   });
+// }
+// // 儲存貨物資料
+// async function saveCargo() {
+//   const cargoData = getCargoDataFromForm();
+//   if (!cargoData.name) return alert("請輸入貨物名稱");
+//   const id = Date.now().toString()
+//   const cargos = await getDataFromLocalStorage("getCargos", "cargos");
+//   const sameNameList = cargos.filter(r => r.name === cargoData.name);
+//   const sameIdIndex = cargos.findIndex(r => r.id === cargoData.id);
+//    if (sameNameList.length > 0) {
+//     const shouldSave = confirm(`已有同名的寄件人 ${cargoData.name}，需要另存嗎？`);
+
+//     if (shouldSave) {
+//       // 另存一筆新的（產生新 id）
+//       cargoData.id = id;
+//       cargos.push(cargoData);
+//     } else {
+//       if (sameIdIndex !== -1) {
+//         // 用 id 找到舊資料 → 更新它
+//         cargos[sameIdIndex] = cargoData;
+//       } else {
+//         // 同名但找不到 id → 直接覆蓋第一筆同名
+//         const firstSameNameIndex = cargos.findIndex(r => r.name === cargoData.name);
+//         cargoData.id = cargos[firstSameNameIndex].id;
+//         cargos[firstSameNameIndex] = cargoData;
+//       }
+//     }
+//   } else {
+//     // 全新寄件人
+//     cargoData.id = id;
+//     senders.push(cargoData);
+//   }
+//   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+//     chrome.tabs.sendMessage(
+//       tabs[0].id,
+//       { type: 'saveCargo', payload: cargos },
+//       (response) => {
+//         if (response && response.success) {
+//            // 成功儲存後 如果search有東西就重新搜尋，如果沒有就移除list
+//           const cargoSearchKeyWord = document.getElementById('searchCargoName').value;
+//           if (cargoSearchKeyWord) {
+//             searchCargoListResult(cargoSearchKeyWord);
+//           } else {
+//             const cargoList = document.getElementById('cargoList');
+//             while (cargoList.firstChild) {
+//               cargoList.removeChild(cargoList.firstChild);
+//             }
+//           }
+//         } else {
+//           alert("儲存失敗");
+//           }
+//         }
+//       );
+//     });
+// }
+function saveSender() {
+  saveEntity({
+    getDataFromForm: getSenderDataFromForm,
+    storageKey: "senders",
+    messageType: "saveSender",
+    searchInputId: "searchSenderName",
+    listElementId: "senderList",
+    searchFunction: searchSenderListResult
+  });
+}
+function saveReceiver() {
+  saveEntity({
+    getDataFromForm: getReceiverDataFromForm,
+    storageKey: "receivers",
+    messageType: "saveReceiver",
+    searchInputId: "searchReceiverName",
+    listElementId: "receiverList",
+    searchFunction: searchReceiverListResult
+  });
+}
+function saveCargo() {
+  saveEntity({
+    getDataFromForm: getCargoDataFromForm,
+    storageKey: "cargos",
+    messageType: "saveCargo",
+    searchInputId: "searchCargoName",
+    listElementId: "cargoList",
+    searchFunction: searchCargoListResult
+  });
+}
+
+async function saveEntity({
+  getDataFromForm,
+  storageKey,
+  messageType,
+  searchInputId,
+  listElementId,
+  searchFunction
+}) {
+  const data = getDataFromForm();
+  if (!data.name) {
+    alert(`請輸入${messageType.replace('save', '')}名稱`);
+    return;
+  }
+
+  const id = Date.now().toString();
+  const entities = await getDataFromLocalStorage(`get${capitalize(storageKey)}`, storageKey);
+  const sameNameList = entities.filter(r => r.name === data.name);
+  const sameIdIndex = entities.findIndex(r => r.id === data.id);
+
+  if (sameNameList.length > 0) {
+    const shouldSave = confirm(`已有同名的 ${data.name}，需要另存嗎？`);
     if (shouldSave) {
-      // 另存一筆新的（產生新 id）
-      receiverData.id = id;
-      receivers.push(receiverData);
+      data.id = id;
+      entities.push(data);
     } else {
       if (sameIdIndex !== -1) {
-        // 用 id 找到舊資料 → 更新它
-        receivers[sameIdIndex] = receiverData;
+        entities[sameIdIndex] = data;
       } else {
-        // 同名但找不到 id → 直接覆蓋第一筆同名
-        const firstSameNameIndex = receivers.findIndex(r => r.name === receiverData.name);
-        receiverData.id = receivers[firstSameNameIndex].id;
-        receivers[firstSameNameIndex] = receiverData;
+        const firstSameNameIndex = entities.findIndex(r => r.name === data.name);
+        data.id = entities[firstSameNameIndex].id;
+        entities[firstSameNameIndex] = data;
       }
     }
   } else {
-    // 全新寄件人
-    receiverData.id = id;
-    receivers.push(receiverData);
+    data.id = id;
+    entities.push(data);
   }
 
-  // 向網頁的 content script 發送儲存請求
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     chrome.tabs.sendMessage(
       tabs[0].id,
-      { type: 'saveReceiver', payload: receivers },
+      { type: messageType, payload: entities },
       (response) => {
         if (response && response.success) {
-          // 成功儲存後 如果search有東西就重新搜尋，如果沒有就移除list
-          const senderSearchKeyWord = document.getElementById('searchReceiverName').value;
-          if (senderSearchKeyWord) {
-            searchReceiverListResult()(senderSearchKeyWord);
+          const keyword = document.getElementById(searchInputId).value;
+          const listElement = document.getElementById(listElementId);
+          if (keyword) {
+            searchFunction(keyword);
           } else {
-            const receiverList = document.getElementById('receiverList');
-            while (receiverList.firstChild) {
-              receiverList.removeChild(receiverList.firstChild);
-            }
+            listElement.innerHTML = "";
           }
         } else {
           alert("儲存失敗");
-          }
-        }
-      );
-    });
-  }
- // 儲存寄件者
- async function saveSender() {
-  const senderData = getSenderDataFromForm();
-  if (!senderData.name) {
-    alert("請輸入寄件人姓名");
-    return;
-  }
-  // 生成 id
-  const id = Date.now().toString();
-  const senders = await getDataFromLocalStorage("getSenders", "senders");
-  const sameNameList = senders.filter(r => r.name === senderData.name);
-  const sameIdIndex = senders.findIndex(r => r.id === senderData.id);
-
-  if (sameNameList.length > 0) {
-    const shouldSave = confirm(`已有同名的寄件人 ${senderData.name}，需要另存嗎？`);
-
-    if (shouldSave) {
-      // 另存一筆新的（產生新 id）
-      senderData.id = id;
-      senders.push(senderData);
-    } else {
-      if (sameIdIndex !== -1) {
-        // 用 id 找到舊資料 → 更新它
-        senders[sameIdIndex] = senderData;
-      } else {
-        // 同名但找不到 id → 直接覆蓋第一筆同名
-        const firstSameNameIndex = senders.findIndex(r => r.name === senderData.name);
-        senderData.id = senders[firstSameNameIndex].id;
-        senders[firstSameNameIndex] = senderData;
-      }
-    }
-  } else {
-    // 全新寄件人
-    senderData.id = id;
-    senders.push(senderData);
-  }
-  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    chrome.tabs.sendMessage(
-      tabs[0].id,
-      { type: "saveSender", payload: senders },
-      (response) => {
-        if (response && response.success) {
-          // 成功儲存後 如果search有東西就重新搜尋，如果沒有就移除list
-          const senderSearchKeyWord = document.getElementById('searchSenderName').value;
-          if (senderSearchKeyWord) {
-            searchSenderListResult(senderSearchKeyWord);
-          } else {
-            const senderList = document.getElementById('senderList');
-            while (senderList.firstChild) {
-              senderList.removeChild(senderList.firstChild);
-            }
-          }
-        } else {
-          alert("儲存寄件人失敗");
         }
       }
     );
   });
 }
-// 儲存貨物資料
-async function saveCargo() {
-  const cargoData = getCargoDataFromForm();
-  if (!cargoData.name) return alert("請輸入貨物名稱");
-  const id = Date.now().toString()
-  const cargos = await getDataFromLocalStorage("getCargos", "cargos");
-  const sameNameList = senders.filter(r => r.name === cargoData.name);
-  const sameIdIndex = senders.findIndex(r => r.id === cargoData.id);
-   if (sameNameList.length > 0) {
-    const shouldSave = confirm(`已有同名的寄件人 ${cargoData.name}，需要另存嗎？`);
 
-    if (shouldSave) {
-      // 另存一筆新的（產生新 id）
-      cargoData.id = id;
-      cargos.push(cargoData);
-    } else {
-      if (sameIdIndex !== -1) {
-        // 用 id 找到舊資料 → 更新它
-        cargos[sameIdIndex] = cargoData;
-      } else {
-        // 同名但找不到 id → 直接覆蓋第一筆同名
-        const firstSameNameIndex = cargos.findIndex(r => r.name === cargoData.name);
-        cargoData.id = cargos[firstSameNameIndex].id;
-        cargos[firstSameNameIndex] = cargoData;
-      }
-    }
-  } else {
-    // 全新寄件人
-    cargoData.id = id;
-    senders.push(cargoData);
-  }
-  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    chrome.tabs.sendMessage(
-      tabs[0].id,
-      { type: 'saveCargo', payload: cargos },
-      (response) => {
-        if (response && response.success) {
-           // 成功儲存後 如果search有東西就重新搜尋，如果沒有就移除list
-          const senderSearchKeyWord = document.getElementById('searchCargoName').value;
-          if (senderSearchKeyWord) {
-            searchCargoListResult(senderSearchKeyWord);
-          } else {
-            const cargoList = document.getElementById('cargoList');
-            while (cargoList.firstChild) {
-              cargoList.removeChild(cargoList.firstChild);
-            }
-          }
-        } else {
-          alert("儲存失敗");
-          }
-        }
-      );
-    });
+function capitalize(str) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
 }
+
 // 取得收件人dom內資料
 function getReceiverDataFromForm() {
     return {
