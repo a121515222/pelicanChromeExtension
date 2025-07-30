@@ -45,29 +45,56 @@ function loadReceiverData(data) {
   loadDistricts(receiverCountySelect.value, receiverDistrictSelect);
   receiverDistrictSelect.value = data.receiverDistrict || '';
 }
-
-function saveReceiverData() {
-  const recipient = {
-    name: document.getElementById('receiverName').value,
-    mobile: document.getElementById('receiverMobile').value,
-    phone: document.getElementById('receiverPhone').value,
-    county: document.getElementById('receiverCounty').value,
-    district: document.getElementById('receiverDistrict').value,
-    address: document.getElementById('receiverAddress').value,
-  };
-
-}
 // 儲存收件者
-function saveReceiver() {
+async function saveReceiver() {
   const receiverData = getReceiverDataFromForm();
   if (!receiverData.name) return alert("請輸入收件人姓名");
+  // 生成 id
+  const id = Date.now().toString()
+  const receivers = await getDataFromLocalStorage("getReceivers", "receivers");
+  const sameNameList = receivers.filter(r => r.name === receiverData.name);
+  const sameIdIndex = receivers.findIndex(r => r.id === receiverData.id);
+ if (sameNameList.length > 0) {
+    const shouldSave = confirm(`已有同名的收件人 ${receiverData.name}，需要另存嗎？`);
+
+    if (shouldSave) {
+      // 另存一筆新的（產生新 id）
+      receiverData.id = id;
+      receivers.push(receiverData);
+    } else {
+      if (sameIdIndex !== -1) {
+        // 用 id 找到舊資料 → 更新它
+        receivers[sameIdIndex] = receiverData;
+      } else {
+        // 同名但找不到 id → 直接覆蓋第一筆同名
+        const firstSameNameIndex = receivers.findIndex(r => r.name === receiverData.name);
+        receiverData.id = receivers[firstSameNameIndex].id;
+        receivers[firstSameNameIndex] = receiverData;
+      }
+    }
+  } else {
+    // 全新寄件人
+    receiverData.id = id;
+    receivers.push(receiverData);
+  }
+
   // 向網頁的 content script 發送儲存請求
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     chrome.tabs.sendMessage(
       tabs[0].id,
-      { type: 'saveReceiver', payload: receiverData },
+      { type: 'saveReceiver', payload: receivers },
       (response) => {
         if (response && response.success) {
+          // 成功儲存後 如果search有東西就重新搜尋，如果沒有就移除list
+          const senderSearchKeyWord = document.getElementById('searchReceiverName').value;
+          if (senderSearchKeyWord) {
+            searchReceiverListResult()(senderSearchKeyWord);
+          } else {
+            const receiverList = document.getElementById('receiverList');
+            while (receiverList.firstChild) {
+              receiverList.removeChild(receiverList.firstChild);
+            }
+          }
         } else {
           alert("儲存失敗");
           }
@@ -76,18 +103,57 @@ function saveReceiver() {
     });
   }
  // 儲存寄件者
- function saveSender() {
+ async function saveSender() {
   const senderData = getSenderDataFromForm();
   if (!senderData.name) {
     alert("請輸入寄件人姓名");
     return;
   }
+  // 生成 id
+  const id = Date.now().toString();
+  const senders = await getDataFromLocalStorage("getSenders", "senders");
+  const sameNameList = senders.filter(r => r.name === senderData.name);
+  const sameIdIndex = senders.findIndex(r => r.id === senderData.id);
+
+  if (sameNameList.length > 0) {
+    const shouldSave = confirm(`已有同名的寄件人 ${senderData.name}，需要另存嗎？`);
+
+    if (shouldSave) {
+      // 另存一筆新的（產生新 id）
+      senderData.id = id;
+      senders.push(senderData);
+    } else {
+      if (sameIdIndex !== -1) {
+        // 用 id 找到舊資料 → 更新它
+        senders[sameIdIndex] = senderData;
+      } else {
+        // 同名但找不到 id → 直接覆蓋第一筆同名
+        const firstSameNameIndex = senders.findIndex(r => r.name === senderData.name);
+        senderData.id = senders[firstSameNameIndex].id;
+        senders[firstSameNameIndex] = senderData;
+      }
+    }
+  } else {
+    // 全新寄件人
+    senderData.id = id;
+    senders.push(senderData);
+  }
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     chrome.tabs.sendMessage(
       tabs[0].id,
-      { type: "saveSender", payload: senderData },
+      { type: "saveSender", payload: senders },
       (response) => {
         if (response && response.success) {
+          // 成功儲存後 如果search有東西就重新搜尋，如果沒有就移除list
+          const senderSearchKeyWord = document.getElementById('searchSenderName').value;
+          if (senderSearchKeyWord) {
+            searchSenderListResult(senderSearchKeyWord);
+          } else {
+            const senderList = document.getElementById('senderList');
+            while (senderList.firstChild) {
+              senderList.removeChild(senderList.firstChild);
+            }
+          }
         } else {
           alert("儲存寄件人失敗");
         }
@@ -96,15 +162,52 @@ function saveReceiver() {
   });
 }
 // 儲存貨物資料
-function saveCargo() {
+async function saveCargo() {
   const cargoData = getCargoDataFromForm();
   if (!cargoData.name) return alert("請輸入貨物名稱");
+  const id = Date.now().toString()
+  const cargos = await getDataFromLocalStorage("getCargos", "cargos");
+  const sameNameList = senders.filter(r => r.name === cargoData.name);
+  const sameIdIndex = senders.findIndex(r => r.id === cargoData.id);
+   if (sameNameList.length > 0) {
+    const shouldSave = confirm(`已有同名的寄件人 ${cargoData.name}，需要另存嗎？`);
+
+    if (shouldSave) {
+      // 另存一筆新的（產生新 id）
+      cargoData.id = id;
+      cargos.push(cargoData);
+    } else {
+      if (sameIdIndex !== -1) {
+        // 用 id 找到舊資料 → 更新它
+        cargos[sameIdIndex] = cargoData;
+      } else {
+        // 同名但找不到 id → 直接覆蓋第一筆同名
+        const firstSameNameIndex = cargos.findIndex(r => r.name === cargoData.name);
+        cargoData.id = cargos[firstSameNameIndex].id;
+        cargos[firstSameNameIndex] = cargoData;
+      }
+    }
+  } else {
+    // 全新寄件人
+    cargoData.id = id;
+    senders.push(cargoData);
+  }
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     chrome.tabs.sendMessage(
       tabs[0].id,
-      { type: 'saveCargo', payload: cargoData },
+      { type: 'saveCargo', payload: cargos },
       (response) => {
         if (response && response.success) {
+           // 成功儲存後 如果search有東西就重新搜尋，如果沒有就移除list
+          const senderSearchKeyWord = document.getElementById('searchCargoName').value;
+          if (senderSearchKeyWord) {
+            searchCargoListResult(senderSearchKeyWord);
+          } else {
+            const cargoList = document.getElementById('cargoList');
+            while (cargoList.firstChild) {
+              cargoList.removeChild(cargoList.firstChild);
+            }
+          }
         } else {
           alert("儲存失敗");
           }
@@ -116,6 +219,7 @@ function saveCargo() {
 function getReceiverDataFromForm() {
     return {
       name: document.getElementById("receiverName").value,
+      id:document.getElementById('receiverName').dataset.receiverId,
       mobile: document.getElementById("receiverMobile").value,
       phone: document.getElementById("receiverPhone").value,
       county: document.getElementById("receiverCounty").value,
@@ -127,6 +231,7 @@ function getReceiverDataFromForm() {
 function getSenderDataFromForm() {
   return {
     name: document.getElementById("senderName").value,
+    id: document.getElementById("senderName").dataset.senderId,
     mobile: document.getElementById("senderMobile").value,
     phone: document.getElementById("senderPhone").value,
     county: document.getElementById("senderCounty").value,
@@ -138,6 +243,7 @@ function getSenderDataFromForm() {
 function getCargoDataFromForm() {
   return {
     name: document.getElementById("cargoName").value,
+    id: document.getElementById("cargoName").dataset.cargoId,
     price:document.getElementById("cargoPrice").value,
     deliverTemperature: document.getElementById("selectDeliverTemperature").value,
     deliverTime: document.getElementById("selectDeliverTime").value,
@@ -351,6 +457,7 @@ function setReceiverToInputs(data) {
   if (!data) return;
 
   document.getElementById("receiverName").value = data.name || "";
+  document.getElementById("receiverName").dataset.receiverId = data?.id || ""; 
   document.getElementById("receiverMobile").value = data.mobile || "";
   document.getElementById("receiverPhone").value = data.phone || "";
   document.getElementById("receiverCounty").value = data.county || "";
@@ -365,6 +472,7 @@ function setSenderToInputs(data) {
   if (!data) return;
 
   document.getElementById("senderName").value = data.name || "";
+  document.getElementById("senderName").dataset.senderId = data?.id || "";
   document.getElementById("senderMobile").value = data.mobile || "";
   document.getElementById("senderPhone").value = data.phone || "";
   document.getElementById("senderCounty").value = data.county || "";
@@ -378,6 +486,7 @@ function setSenderToInputs(data) {
 function setCargoToInputs(data) {
   if (!data) return;
   document.getElementById("cargoName").value = data.name || "";
+  document.getElementById("cargoName").dataset.cargoId = data.id || "";
   document.getElementById("cargoPrice").value = data.price || "";
   document.getElementById("selectDeliverTemperature").value = data.deliverTemperature || "";
   document.getElementById("selectDeliverTime").value = data.deliverTime || "";
@@ -398,9 +507,9 @@ function renderReceiverList(receivers) {
       expectResponse:false
   });
     },
-    onDelete: (_, index) => {
-      deleteList({
-        indexToDelete: index,
+    onDelete: (receiver) => {
+      deleteListByIdAndName({
+        item: receiver,
         type: "getReceivers",
         localStorageKey: "receivers",
         confirmMessage: "確認刪除這個收件人嗎?",
@@ -433,9 +542,9 @@ function renderSenderList(senders){
       expectResponse:false
   });
     },
-    onDelete: (_, index) => {
-      deleteList({
-        indexToDelete: index,
+    onDelete: (sender) => {
+      deleteListByIdAndName({
+        item: sender,
         type: "getSenders",
         localStorageKey: "senders",
         confirmMessage: "確認刪除這個寄件人嗎?",
@@ -468,9 +577,9 @@ function renderCargoList(cargos) {
       expectResponse:false
   });
     },
-    onDelete: (_, index) => {
-      deleteList({
-        indexToDelete: index,
+    onDelete: (cargo) => {
+      deleteListByIdAndName({
+        item: cargo,
         type: "getCargos",
         localStorageKey: "cargos",
         confirmMessage: "確認刪除這個收件人嗎?",
@@ -513,8 +622,8 @@ function renderList({
     const li = document.createElement("li");
     li.classList.add("list-item");
     li.innerHTML = `
-      <div class="item-card">
-        <div class="item-info">
+      <div class="item-card" data-item-id="${item?.id || ''}">
+        <div class="item-info" >
           <p>${item[itemNameKey] || "未命名"}</p>
         </div>
         <div class="item-actions">
@@ -553,8 +662,8 @@ function renderList({
   });
 }
 
-async function deleteList({
-  indexToDelete,
+async function deleteListByIdAndName({
+  item,
   type,                 // 要發送給 content.js 的 type
   localStorageKey,  // localStorage 的 key
   confirmMessage,
@@ -568,12 +677,16 @@ async function deleteList({
       alert("資料格式錯誤或不存在");
       return;
     }
-
-    if (!confirm(`『${data[indexToDelete][dataName]}』${confirmMessage}`)) {
+    console.log("item",item)
+    if (!confirm(`『${item[dataName]}』${confirmMessage}`)) {
       return; // 使用者按取消
     }
-
-    data.splice(indexToDelete, 1); // 刪除項目
+    const spliceIndex = data.findIndex((i) => i?.id === item?.id);
+    if (spliceIndex === -1) {
+    alert("找不到要刪除的項目");
+    return;
+    }
+    data.splice(spliceIndex, 1); // 刪除項目
 
     chromeTabsQuery({
       type: saveType ,
@@ -605,7 +718,7 @@ function chromeTabsQuery({
 
     chrome.tabs.sendMessage(tabs[0].id, { type, payload }, (response) => {
       if (!expectResponse) {
-        // 🔹 不需要回傳就直接觸發成功回調
+        // 不需要回傳就直接觸發成功回調
         onSuccess();
         return;
       }
@@ -663,22 +776,22 @@ document.addEventListener("DOMContentLoaded", () => {
   loadReceiverBtn.addEventListener("click", () => {
     const receiverSearchKeyWord = document.getElementById('searchReceiverName').value
     // 從網頁 content script 取得 localStorage 的收件人清單
-    searchReceiverListResult(receiverSearchKeyWord)
+    searchReceiverListResult(receiverSearchKeyWord);
   });
   // 寄件人搜尋功能
   searchSenderInput.addEventListener('input', debounce(() => {
     const senderSearchKeyWord = searchSenderInput.value;
-    searchSenderListResult(senderSearchKeyWord)
+    searchSenderListResult(senderSearchKeyWord);
   }, 300));
   loadSenderBtn.addEventListener("click", () => {
     const senderSearchKeyWord = document.getElementById('searchSenderName').value
     // 從網頁 content script 取得 localStorage 的收件人清單
-    searchSenderListResult(senderSearchKeyWord)
+    searchSenderListResult(senderSearchKeyWord);
   });
   // 貨物搜索功能
   searchCargoInput.addEventListener('input', debounce(()=> {
     const cargoSearchKeyWord = searchCargoInput.value;
-    searchCargoListResult(cargoSearchKeyWord)
+    searchCargoListResult(cargoSearchKeyWord);
   }, 300));
   loadCargoBtn.addEventListener("click", () => {
     const cargoSearchKeyWord = document.getElementById('searchCargoName').value
@@ -721,7 +834,10 @@ async function searchReceiverListResult(keyWord) {
   renderReceiverList(result)
   } 
 async function searchSenderListResult(keyWord) {
+  console.log("1111")
   const result = await searchList(keyWord, "getSenders", "senders", "name")
+  console.log(result)
+  console.log("222")
   renderSenderList(result)
   }
 async function searchCargoListResult(keyWord) {
@@ -766,6 +882,7 @@ function createCollapsibleList({ containerId, toggleBtnId }) {
 // 清除寄件人表單
 document.getElementById("resetSender").addEventListener("click", () => {
   document.getElementById("senderName").value = "";
+  document.getElementById("senderName").dataset.senderId = "";
   document.getElementById("senderMobile").value = "";
   document.getElementById("senderPhone").value = "";
   document.getElementById("senderCounty").value = "";
@@ -775,6 +892,7 @@ document.getElementById("resetSender").addEventListener("click", () => {
 // 清除收件人表單
 document.getElementById("resetReceiver").addEventListener("click", () => {
   document.getElementById("receiverName").value = "";
+  document.getElementById("receiverName").dataset.senderId = "";
   document.getElementById("receiverMobile").value = "";
   document.getElementById("receiverPhone").value = "";
   document.getElementById("receiverCounty").value = "";
@@ -784,7 +902,35 @@ document.getElementById("resetReceiver").addEventListener("click", () => {
 // 清除貨物表單
 document.getElementById("resetCargo").addEventListener("click", () => {
   document.getElementById("cargoName").value = "";
+  document.getElementById("cargoName").dataset.cargoId = "";
   document.getElementById("cargoPrice").value = "";
   document.getElementById("selectDeliverTemperature").value = "";
   document.getElementById("selectDeliverTime").value = "";
+});
+
+
+// 匯入與匯出資料
+document.getElementById('exportBtn').addEventListener('click', () => {
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    chrome.tabs.sendMessage(tabs[0].id, { type: 'EXPORT_DATA' });
+  });
+});
+
+document.getElementById('importBtn').addEventListener('click', () => {
+  document.getElementById('fileInput').click();
+});
+
+document.getElementById('importFile').addEventListener('change', async (event) => {
+  const file = event.target.files[0];
+  if (!file || !file.name.endsWith('.text')) {
+    alert('請選擇副檔名為 .text 的檔案');
+    return;
+  }
+
+  const text = await file.text();
+
+  chrome.runtime.sendMessage({
+    type: 'IMPORT_DATA',
+    payload: text,
+  });
 });

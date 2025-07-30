@@ -20,7 +20,7 @@
         <i id="toggleSenderFormIcon" class="fas fa-chevron-up"></i>
       </h2>
       <div id="senderForm">
-        <input id="senderName" placeholder="姓名" />
+        <input id="senderName" placeholder="姓名" data-sender-id="" />
         <input id="senderMobile" placeholder="手機" />
         <input id="senderPhone" placeholder="市話" />
         <select id="senderCounty">
@@ -31,7 +31,7 @@
         </select>
         <input id="senderAddress" placeholder="地址" />
         <button class="btn" id="saveSender">儲存寄件人</button>
-        <button class="btn reset-btn" id="resetSender">重置寄件人</button>
+        <button class="btn reset-btn" id="resetSender">新增寄件人</button>
       </div>
 
       <h2>搜尋寄件人</h2>
@@ -57,7 +57,7 @@
         <i id="toggleReceiverFormIcon"></i>
       </h2>
       <div id="receiverForm">
-        <input id="receiverName" placeholder="姓名" />
+        <input id="receiverName" placeholder="姓名" data-receiver-id="" />
         <input id="receiverMobile" placeholder="手機" />
         <input id="receiverPhone" placeholder="市話" />
         <select id="receiverCounty">
@@ -68,7 +68,7 @@
         </select>
         <input id="receiverAddress" placeholder="地址" />
         <button class="btn" id="saveReceiver">儲存收件人</button>
-        <button class="btn reset-btn" id="resetReceiver">重置收件人</button>
+        <button class="btn reset-btn" id="resetReceiver">新增收件人</button>
       </div>
 
       <h2>搜尋收件人</h2>
@@ -95,7 +95,7 @@
         <i id="toggleCargoFormIcon" class="fas fa-chevron-up"></i>
       </h2>
       <div id="cargoForm">
-        <input id="cargoName" placeholder="內容物" />
+        <input id="cargoName" placeholder="內容物" data-cargo-id="" />
         <input id="cargoPrice" placeholder="內容物價值" />
         <select id="selectDeliverTemperature">
           <option value="常溫">常溫</option>
@@ -108,7 +108,7 @@
           <option value="02">14-18時前</option>
         </select>
         <button class="btn" id="saveCargo">儲存貨物</button>
-        <button class="btn reset-btn" id="resetCargo">重置貨物</button>
+        <button class="btn reset-btn" id="resetCargo">新增貨物</button>
       </div>
       <h2>搜尋貨物</h2>
       <input type="text" id="searchCargoName" placeholder="貨物內容" />
