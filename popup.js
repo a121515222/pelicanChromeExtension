@@ -227,22 +227,42 @@ window.addEventListener('DOMContentLoaded', () => {
   });
   // 匯出按鈕
   document.getElementById('exportBtn').addEventListener('click', () => {
-    chrome.runtime.sendMessage({ type: 'getDeliveryData' }, (response) => {
-       if (response?.status === 'success') {
-        alert('匯出成功');
-      } else if (response?.status === 'empty') {
-        alert('沒有資料可以匯出');
-      } else {
-        alert(`匯出失敗：${response?.message || '未知錯誤'}`);
-      }
-      const exportData = { senders: response.senders, receivers: response.receivers, cargos: response.cargos|| [] };
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+  if (!tabs[0]) {
+    alert('找不到當前分頁');
+    return;
+  }
+
+  chrome.tabs.sendMessage(tabs[0].id, { type: 'exportFillData' }, (response) => {
+    if (chrome.runtime.lastError) {
+      alert('無法連接內容腳本: ' + chrome.runtime.lastError.message);
+      return;
+    }
+
+    if (response?.status === 'success') {
+      alert('匯出成功');
+
+      const exportData = {
+        senders: response.senders || [],
+        receivers: response.receivers || [],
+        cargos: response.cargos || []
+      };
+
       const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
       a.download = 'fillData.json';
       a.click();
       URL.revokeObjectURL(a.href);
-    });
+
+    } else if (response?.status === 'empty') {
+      alert('沒有資料可以匯出');
+    } else {
+      alert(`匯出失敗：${response?.message || '未知錯誤'}`);
+    }
+  });
+});
+
   });
 
   // 匯入按鈕

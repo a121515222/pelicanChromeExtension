@@ -253,18 +253,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     }
   }
   // 匯入與匯出資料
- if (request.type === 'exportFillData') {
+if (request.type === 'exportFillData') {
   const keys = ['senders', 'receivers', 'cargos'];
   const data = {};
 
   keys.forEach((key) => {
     try {
       const value = localStorage.getItem(key);
-      if (value) {
-        data[key] = JSON.parse(value);
-      } else {
-        data[key] = []; // 確保 key 存在，即使是空陣列
-      }
+      data[key] = value ? JSON.parse(value) : [];
     } catch (error) {
       console.error(`讀取 ${key} 發生錯誤:`, error);
       data[key] = [];
@@ -272,33 +268,20 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   });
 
   if (!data.senders.length && !data.receivers.length && !data.cargos.length) {
-    alert('沒有可匯出的資料');
     sendResponse({ status: 'empty', message: '沒有可匯出的資料' });
     return true; // 非同步回應
   }
 
-  try {
-    const blob = new Blob([JSON.stringify(data, null, 2)], {
-      type: 'application/json',
-    });
-
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'fillData.json';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-
-    sendResponse({ status: 'success' });
-  } catch (e) {
-    console.error('匯出發生錯誤：', e);
-    sendResponse({ status: 'error', message: e.message });
-  }
-
-  return true; // 表示我們會非同步呼叫 sendResponse
+  // 只回傳資料，不執行下載
+  sendResponse({
+    status: 'success',
+    senders: data.senders,
+    receivers: data.receivers,
+    cargos: data.cargos,
+  });
+  return true;
 }
+
 
 
 
