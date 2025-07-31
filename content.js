@@ -303,10 +303,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 
 if (request.type === 'importFillData') {
-  console.log("request11", request.payload);
   try {
     const { senders = [], receivers = [], cargos = [] } = request.payload || {};
-    console.log("request", request.payload);
     if (!Array.isArray(senders) || !Array.isArray(receivers) || !Array.isArray(cargos)) {
       sendResponse({ status: 'error', message: 'JSON 結構錯誤，缺少 senders、receivers 或 cargos' });
       return true;

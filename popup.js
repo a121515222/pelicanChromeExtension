@@ -290,7 +290,11 @@ document.getElementById('importBtn').addEventListener('click', () => {
   reader.readAsText(file);
   fileInput.value = ''; // 清空選擇
 });
-
+// 顯示要import的檔案
+document.getElementById('importFile').addEventListener('change', function () {
+  const file = this.files[0];
+  document.getElementById('fileNameDisplay').textContent = file ? file.name : '尚未選擇檔案';
+});
   // QR Code 掃描
   const video = document.getElementById('video');
   const scanQRCodeButton = document.getElementById('scanQRCode');

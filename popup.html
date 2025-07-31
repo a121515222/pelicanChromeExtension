@@ -124,9 +124,24 @@
     </div>
 
     <hr />
-    <button id="exportBtn">匯出資料</button>
-    <input type="file" id="importFile" accept=".json" />
-    <button id="importBtn">匯入資料</button>
+    <div class="section-bg exportAndImport-bg">
+      <h2>資料匯入與匯出</h2>
+      <div class="import-export-controls">
+        <button id="exportBtn">匯出資料</button>
+
+        <label
+          for="importFile"
+          class="custom-file-label text-center w-full block"
+        >
+          選擇 JSON 檔案
+        </label>
+        <input type="file" id="importFile" accept=".json" />
+        <span id="fileNameDisplay" class="text-center w-full block">
+          尚未選擇檔案</span
+        >
+        <button id="importBtn">匯入資料</button>
+      </div>
+    </div>
   </body>
   <script src="lib/zxing-browser.js"></script>
   <script src="selectConfig.js"></script>
