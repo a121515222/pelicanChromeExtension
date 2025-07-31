@@ -45,176 +45,6 @@ function loadReceiverData(data) {
   loadDistricts(receiverCountySelect.value, receiverDistrictSelect);
   receiverDistrictSelect.value = data.receiverDistrict || '';
 }
-// // 儲存收件者
-// async function saveReceiver() {
-//   const receiverData = getReceiverDataFromForm();
-//   if (!receiverData.name) return alert("請輸入收件人姓名");
-//   // 生成 id
-//   const id = Date.now().toString()
-//   const receivers = await getDataFromLocalStorage("getReceivers", "receivers");
-//   const sameNameList = receivers.filter(r => r.name === receiverData.name);
-//   const sameIdIndex = receivers.findIndex(r => r.id === receiverData.id);
-//  if (sameNameList.length > 0) {
-//     const shouldSave = confirm(`已有同名的收件人 ${receiverData.name}，需要另存嗎？`);
-
-//     if (shouldSave) {
-//       // 另存一筆新的（產生新 id）
-//       receiverData.id = id;
-//       receivers.push(receiverData);
-//     } else {
-//       if (sameIdIndex !== -1) {
-//         // 用 id 找到舊資料 → 更新它
-//         receivers[sameIdIndex] = receiverData;
-//       } else {
-//         // 同名但找不到 id → 直接覆蓋第一筆同名
-//         const firstSameNameIndex = receivers.findIndex(r => r.name === receiverData.name);
-//         receiverData.id = receivers[firstSameNameIndex].id;
-//         receivers[firstSameNameIndex] = receiverData;
-//       }
-//     }
-//   } else {
-//     // 全新寄件人
-//     receiverData.id = id;
-//     receivers.push(receiverData);
-//   }
-
-//   // 向網頁的 content script 發送儲存請求
-//   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-//     chrome.tabs.sendMessage(
-//       tabs[0].id,
-//       { type: 'saveReceiver', payload: receivers },
-//       (response) => {
-//         if (response && response.success) {
-//           // 成功儲存後 如果search有東西就重新搜尋，如果沒有就移除list
-//           const senderSearchKeyWord = document.getElementById('searchReceiverName').value;
-//           if (senderSearchKeyWord) {
-//             searchReceiverListResult()(senderSearchKeyWord);
-//           } else {
-//             const receiverList = document.getElementById('receiverList');
-//             while (receiverList.firstChild) {
-//               receiverList.removeChild(receiverList.firstChild);
-//             }
-//           }
-//         } else {
-//           alert("儲存失敗");
-//           }
-//         }
-//       );
-//     });
-//   }
-//  // 儲存寄件者
-//  async function saveSender() {
-//   const senderData = getSenderDataFromForm();
-//   if (!senderData.name) {
-//     alert("請輸入寄件人姓名");
-//     return;
-//   }
-//   // 生成 id
-//   const id = Date.now().toString();
-//   const senders = await getDataFromLocalStorage("getSenders", "senders");
-//   const sameNameList = senders.filter(r => r.name === senderData.name);
-//   const sameIdIndex = senders.findIndex(r => r.id === senderData.id);
-
-//   if (sameNameList.length > 0) {
-//     const shouldSave = confirm(`已有同名的寄件人 ${senderData.name}，需要另存嗎？`);
-
-//     if (shouldSave) {
-//       // 另存一筆新的（產生新 id）
-//       senderData.id = id;
-//       senders.push(senderData);
-//     } else {
-//       if (sameIdIndex !== -1) {
-//         // 用 id 找到舊資料 → 更新它
-//         senders[sameIdIndex] = senderData;
-//       } else {
-//         // 同名但找不到 id → 直接覆蓋第一筆同名
-//         const firstSameNameIndex = senders.findIndex(r => r.name === senderData.name);
-//         senderData.id = senders[firstSameNameIndex].id;
-//         senders[firstSameNameIndex] = senderData;
-//       }
-//     }
-//   } else {
-//     // 全新寄件人
-//     senderData.id = id;
-//     senders.push(senderData);
-//   }
-//   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-//     chrome.tabs.sendMessage(
-//       tabs[0].id,
-//       { type: "saveSender", payload: senders },
-//       (response) => {
-//         if (response && response.success) {
-//           // 成功儲存後 如果search有東西就重新搜尋，如果沒有就移除list
-//           const senderSearchKeyWord = document.getElementById('searchSenderName').value;
-//           if (senderSearchKeyWord) {
-//             searchSenderListResult(senderSearchKeyWord);
-//           } else {
-//             const senderList = document.getElementById('senderList');
-//             while (senderList.firstChild) {
-//               senderList.removeChild(senderList.firstChild);
-//             }
-//           }
-//         } else {
-//           alert("儲存寄件人失敗");
-//         }
-//       }
-//     );
-//   });
-// }
-// // 儲存貨物資料
-// async function saveCargo() {
-//   const cargoData = getCargoDataFromForm();
-//   if (!cargoData.name) return alert("請輸入貨物名稱");
-//   const id = Date.now().toString()
-//   const cargos = await getDataFromLocalStorage("getCargos", "cargos");
-//   const sameNameList = cargos.filter(r => r.name === cargoData.name);
-//   const sameIdIndex = cargos.findIndex(r => r.id === cargoData.id);
-//    if (sameNameList.length > 0) {
-//     const shouldSave = confirm(`已有同名的寄件人 ${cargoData.name}，需要另存嗎？`);
-
-//     if (shouldSave) {
-//       // 另存一筆新的（產生新 id）
-//       cargoData.id = id;
-//       cargos.push(cargoData);
-//     } else {
-//       if (sameIdIndex !== -1) {
-//         // 用 id 找到舊資料 → 更新它
-//         cargos[sameIdIndex] = cargoData;
-//       } else {
-//         // 同名但找不到 id → 直接覆蓋第一筆同名
-//         const firstSameNameIndex = cargos.findIndex(r => r.name === cargoData.name);
-//         cargoData.id = cargos[firstSameNameIndex].id;
-//         cargos[firstSameNameIndex] = cargoData;
-//       }
-//     }
-//   } else {
-//     // 全新寄件人
-//     cargoData.id = id;
-//     senders.push(cargoData);
-//   }
-//   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-//     chrome.tabs.sendMessage(
-//       tabs[0].id,
-//       { type: 'saveCargo', payload: cargos },
-//       (response) => {
-//         if (response && response.success) {
-//            // 成功儲存後 如果search有東西就重新搜尋，如果沒有就移除list
-//           const cargoSearchKeyWord = document.getElementById('searchCargoName').value;
-//           if (cargoSearchKeyWord) {
-//             searchCargoListResult(cargoSearchKeyWord);
-//           } else {
-//             const cargoList = document.getElementById('cargoList');
-//             while (cargoList.firstChild) {
-//               cargoList.removeChild(cargoList.firstChild);
-//             }
-//           }
-//         } else {
-//           alert("儲存失敗");
-//           }
-//         }
-//       );
-//     });
-// }
 function saveSender() {
   saveEntity({
     getDataFromForm: getSenderDataFromForm,
@@ -398,54 +228,69 @@ window.addEventListener('DOMContentLoaded', () => {
   // 匯出按鈕
   document.getElementById('exportBtn').addEventListener('click', () => {
     chrome.runtime.sendMessage({ type: 'getDeliveryData' }, (response) => {
-      if (!response?.sender && !response?.recipients) {
-        alert('沒有資料可匯出');
-        return;
+       if (response?.status === 'success') {
+        alert('匯出成功');
+      } else if (response?.status === 'empty') {
+        alert('沒有資料可以匯出');
+      } else {
+        alert(`匯出失敗：${response?.message || '未知錯誤'}`);
       }
-      const exportData = { sender: response.sender, recipients: response.recipients || [] };
+      const exportData = { senders: response.senders, receivers: response.receivers, cargos: response.cargos|| [] };
       const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = 'deliveryData.json';
+      a.download = 'fillData.json';
       a.click();
       URL.revokeObjectURL(a.href);
     });
   });
 
   // 匯入按鈕
-  document.getElementById('importBtn').addEventListener('click', () => {
-    const fileInput = document.getElementById('importFile');
-    const file = fileInput.files[0];
-    if (!file) {
-      alert('請先選擇一個 JSON 檔案');
-      return;
+document.getElementById('importBtn').addEventListener('click', () => {
+  const fileInput = document.getElementById('importFile');
+  const file = fileInput.files[0];
+
+  if (!file) {
+    alert('請先選擇一個 JSON 檔案');
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const rawData = JSON.parse(e.target.result);
+      const data = {
+        senders: Array.isArray(rawData.senders) ? rawData.senders : [],
+        receivers: Array.isArray(rawData.receivers) ? rawData.receivers : [],
+        cargos: Array.isArray(rawData.cargos) ? rawData.cargos : [],
+      };
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      const tabId = tabs[0].id;
+      chrome.tabs.sendMessage(tabId, {
+        type: 'importFillData',
+        payload: {
+          senders: data.senders,
+          receivers: data.receivers,
+          cargos: data.cargos,
     }
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const data = JSON.parse(e.target.result);
-        if (!data.sender || !data.recipients) {
-          alert('JSON 格式不正確');
-          return;
-        }
-        chrome.runtime.sendMessage({ type: 'saveDeliveryData', sender: data.sender, recipient: data.recipients[data.recipients.length - 1] }, (response) => {
-          if (response?.status === 'success') {
-            alert('匯入成功');
-            loadSenderData(data.sender);
-            if (data.recipients.length > 0) {
-              loadReceiverData(data.recipients[data.recipients.length - 1]);
-            }
-          } else {
-            alert(`匯入失敗: ${response?.message || '未知錯誤'}`);
-          }
-        });
-      } catch {
-        alert('匯入失敗：無效的 JSON 檔案');
-      }
-    };
-    reader.readAsText(file);
-    fileInput.value = '';
+    }, (response) => {
+    if (response?.status === 'success') {
+      alert('匯入成功');
+    } else {
+      alert(`匯入失敗: ${response?.message || '未知錯誤'}`);
+    }
   });
+});
+
+    } catch {
+      alert('匯入失敗：無效的 JSON 檔案');
+    }
+  };
+
+  reader.readAsText(file);
+  fileInput.value = ''; // 清空選擇
+});
+
   // QR Code 掃描
   const video = document.getElementById('video');
   const scanQRCodeButton = document.getElementById('scanQRCode');
@@ -1004,27 +849,27 @@ document.getElementById("resetCargo").addEventListener("click", () => {
 
 
 // 匯入與匯出資料
-document.getElementById('exportBtn').addEventListener('click', () => {
-  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    chrome.tabs.sendMessage(tabs[0].id, { type: 'EXPORT_DATA' });
-  });
-});
+// document.getElementById('exportBtn').addEventListener('click', () => {
+//   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+//     chrome.tabs.sendMessage(tabs[0].id, { type: 'exportFillData' });
+//   });
+// });
 
-document.getElementById('importBtn').addEventListener('click', () => {
-  document.getElementById('fileInput').click();
-});
+// document.getElementById('importBtn').addEventListener('click', () => {
+//   document.getElementById('fileInput').click();
+// });
 
-document.getElementById('importFile').addEventListener('change', async (event) => {
-  const file = event.target.files[0];
-  if (!file || !file.name.endsWith('.text')) {
-    alert('請選擇副檔名為 .text 的檔案');
-    return;
-  }
+// document.getElementById('importFile').addEventListener('change', async (event) => {
+//   const file = event.target.files[0];
+//   if (!file || !file.name.endsWith('.text')) {
+//     alert('請選擇副檔名為 .text 的檔案');
+//     return;
+//   }
 
-  const text = await file.text();
+//   const text = await file.text();
 
-  chrome.runtime.sendMessage({
-    type: 'IMPORT_DATA',
-    payload: text,
-  });
-});
+//   chrome.runtime.sendMessage({
+//     type: 'importFillDataData',
+//     payload: text,
+//   });
+// });

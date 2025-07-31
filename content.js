@@ -253,44 +253,77 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     }
   }
   // 匯入與匯出資料
-  if (request.type === 'EXPORT_DATA') {
-    const keys = ['senders', 'receivers', 'cargos'];
-    const data = {};
-    keys.forEach((key) => {
+ if (request.type === 'exportFillData') {
+  const keys = ['senders', 'receivers', 'cargos'];
+  const data = {};
+
+  keys.forEach((key) => {
+    try {
       const value = localStorage.getItem(key);
-      if (value) data[key] = JSON.parse(value);
+      if (value) {
+        data[key] = JSON.parse(value);
+      } else {
+        data[key] = []; // 確保 key 存在，即使是空陣列
+      }
+    } catch (error) {
+      console.error(`讀取 ${key} 發生錯誤:`, error);
+      data[key] = [];
+    }
+  });
+
+  if (!data.senders.length && !data.receivers.length && !data.cargos.length) {
+    alert('沒有可匯出的資料');
+    sendResponse({ status: 'empty', message: '沒有可匯出的資料' });
+    return true; // 非同步回應
+  }
+
+  try {
+    const blob = new Blob([JSON.stringify(data, null, 2)], {
+      type: 'application/json',
     });
 
-    const blob = new Blob([JSON.stringify(data, null, 2)], {
-      type: 'text/plain',
-    });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'exported_data.text';
+    a.download = 'fillData.json';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+
+    sendResponse({ status: 'success' });
+  } catch (e) {
+    console.error('匯出發生錯誤：', e);
+    sendResponse({ status: 'error', message: e.message });
   }
 
-  if (request.type === 'IMPORT_DATA') {
-    try {
-      const json = JSON.parse(request.payload);
+  return true; // 表示我們會非同步呼叫 sendResponse
+}
 
-      const validKeys = ['senders', 'receivers', 'cargos'];
-      for (const key of validKeys) {
-        if (key in json) {
-          localStorage.setItem(key, JSON.stringify(json[key]));
-        }
-      }
 
-      console.log('匯入成功');
-      alert('匯入成功');
-    } catch (e) {
-      console.error('匯入失敗:', e);
-      alert('檔案內容不是合法 JSON');
+
+if (request.type === 'importFillData') {
+  console.log("request11", request.payload);
+  try {
+    const { senders = [], receivers = [], cargos = [] } = request.payload || {};
+    console.log("request", request.payload);
+    if (!Array.isArray(senders) || !Array.isArray(receivers) || !Array.isArray(cargos)) {
+      sendResponse({ status: 'error', message: 'JSON 結構錯誤，缺少 senders、receivers 或 cargos' });
+      return true;
     }
+
+    localStorage.setItem('senders', JSON.stringify(senders));
+    localStorage.setItem('receivers', JSON.stringify(receivers));
+    localStorage.setItem('cargos', JSON.stringify(cargos));
+
+    sendResponse({ status: 'success' });
+  } catch (err) {
+    console.error('匯入錯誤：', err);
+    sendResponse({ status: 'error', message: err.message });
   }
+  return true; // 非同步回應
+}
+
+
 });
 
