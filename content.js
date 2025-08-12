@@ -31,7 +31,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.type === "saveSender") {
   try {
     const senders = request.payload;
-      console.log("senders", senders)
       localStorage.setItem("senders", JSON.stringify(senders));
       sendResponse({ success: true });
     } catch (e) {
@@ -162,6 +161,22 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     const data = request.payload;
 
     const inputs = document.querySelectorAll("input");
+    // 處理 select 縣市與區域（由第一與第二個 select 控制）
+    const selects = document.querySelectorAll("select");
+    if (selects.length >= 4) {
+      if (data.county) {
+    selects[0].value = data.county;
+    selects[0].dispatchEvent(new Event("change"));
+
+    if (data.district) {
+      setTimeout(() => {
+        selects[1].value = data.district;
+        selects[1].dispatchEvent(new Event("change"));
+        }, 300); // 延遲時間視網站 JS 的更新速度調整
+        }
+      }
+    }
+
     if (inputs.length >= 9) {
       // 寄件人姓名 (第2個input)
       inputs[1].value = data.name || "";
@@ -176,28 +191,18 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       inputs[3].dispatchEvent(new Event("input"));
 
       // 寄件人詳細地址 (第5個input)
-      inputs[4].value = data.address || "";
-      inputs[4].dispatchEvent(new Event("input"));
+      
+      // 模擬實際輸入，有可能是網頁的寄件人input驗證比較嚴格需要有chang或是blur才驗證,又或是需要模擬一個字一個字輸入
+      // simulateTyping(inputs[4], data.address)
+      setTimeout(() => {
+      simulateTyping(inputs[4], data.address || "");
+      }, 500);
+     
     } else {
       console.warn("input 數量不足，無法填入收件人欄位");
     }
 
-    // 處理 select 縣市與區域（由第一與第二個 select 控制）
-    const selects = document.querySelectorAll("select");
-    if (selects.length >= 4) {
-      if (data.county) {
-    selects[0].value = data.county;
-    selects[0].dispatchEvent(new Event("change"));
-
-    if (data.district) {
-      setTimeout(() => {
-        selects[1].value = data.district;
-        selects[1].dispatchEvent(new Event("change"));
-      }, 300); // 延遲時間視網站 JS 的更新速度調整
-  }
-}
-    }
-
+    
       sendResponse({ success: true });
        return true
    }   catch (e) {
@@ -308,3 +313,13 @@ if (request.type === 'importFillData') {
 
 });
 
+async function simulateTyping(el, text) {
+  el.value = "";
+  for (let i = 0; i < text.length; i++) {
+    el.value += text[i];
+    el.dispatchEvent(new Event("input", { bubbles: true }));
+    await new Promise(res => setTimeout(res, 30)); // 模擬打字延遲
+  }
+  el.dispatchEvent(new Event("change", { bubbles: true }));
+  el.dispatchEvent(new Event("blur", { bubbles: true }));
+}

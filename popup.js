@@ -89,7 +89,6 @@ async function saveEntity({
     alert(`請輸入${messageType.replace('save', '')}名稱`);
     return;
   }
-
   const id = Date.now().toString();
   const entities = await getDataFromLocalStorage(`get${capitalize(storageKey)}`, storageKey);
   const sameNameList = entities.filter(r => r.name === data.name);
@@ -102,7 +101,10 @@ async function saveEntity({
       entities.push(data);
     } else {
       if (sameIdIndex !== -1) {
-        entities[sameIdIndex] = data;
+        const shouldSave = confirm(`是否要更新已有的${data.name}?`)
+        if (shouldSave) {
+          entities[sameIdIndex] = data;
+        }
       } else {
         const firstSameNameIndex = entities.findIndex(r => r.name === data.name);
         data.id = entities[firstSameNameIndex].id;
@@ -612,6 +614,7 @@ function renderList({
     // 點擊「填入」
     li.querySelector(".fill-btn").addEventListener("click", (e) => {
       e.stopPropagation();
+      // 進行兩次填入 因為寄件人在網頁需要填入兩次才不報錯
       onFill(item, index);
     });
 
@@ -640,7 +643,6 @@ async function deleteListByIdAndName({
       alert("資料格式錯誤或不存在");
       return;
     }
-    console.log("item",item)
     if (!confirm(`『${item[dataName]}』${confirmMessage}`)) {
       return; // 使用者按取消
     }
@@ -797,10 +799,7 @@ async function searchReceiverListResult(keyWord) {
   renderReceiverList(result)
   } 
 async function searchSenderListResult(keyWord) {
-  console.log("1111")
   const result = await searchList(keyWord, "getSenders", "senders", "name")
-  console.log(result)
-  console.log("222")
   renderSenderList(result)
   }
 async function searchCargoListResult(keyWord) {
@@ -871,29 +870,3 @@ document.getElementById("resetCargo").addEventListener("click", () => {
   document.getElementById("selectDeliverTime").value = "";
 });
 
-
-// 匯入與匯出資料
-// document.getElementById('exportBtn').addEventListener('click', () => {
-//   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-//     chrome.tabs.sendMessage(tabs[0].id, { type: 'exportFillData' });
-//   });
-// });
-
-// document.getElementById('importBtn').addEventListener('click', () => {
-//   document.getElementById('fileInput').click();
-// });
-
-// document.getElementById('importFile').addEventListener('change', async (event) => {
-//   const file = event.target.files[0];
-//   if (!file || !file.name.endsWith('.text')) {
-//     alert('請選擇副檔名為 .text 的檔案');
-//     return;
-//   }
-
-//   const text = await file.text();
-
-//   chrome.runtime.sendMessage({
-//     type: 'importFillDataData',
-//     payload: text,
-//   });
-// });
