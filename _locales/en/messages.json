@@ -1,0 +1,8 @@
+{
+  "extName": {
+    "message": "Pelicanec Form filler"
+  },
+  "extDescription": {
+    "message": "This extension allows users to enter their information only once, and after saving, they can fill out forms with a single click."
+  }
+}
