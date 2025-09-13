@@ -212,51 +212,59 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     }
   }
 // 填入貨物資料到網頁中
-  if (request.type === 'fillCargo') {
-    try {
-      const data = request.payload;
-      const inputs = document.querySelectorAll("input");
-      const selects = document.querySelectorAll("select");
-      const radios = document.querySelectorAll('input[type="radio"]');
-      // 計算有多少radio 只有一個的就是常溫單，兩個就是低溫單
-      const radioCount = radios.length;
-      // 
-      if (radioCount === 1) {
-        inputs[12].value = data.name;
-        inputs[12].dispatchEvent(new Event("input"));
-        inputs[13].value = data.price;
-        inputs[13].dispatchEvent(new Event("input"));
-        if (data.deliverTemperature === "常溫" && radios.length > 0) {
-          radios[0].checked = true;
-          radios[0].dispatchEvent(new Event("change", { bubbles: true }));
-        } else {
-          alert(`所選貨物是${data.deliverTemperature}`)
-        }
-      } else if (radioCount === 2) {
-        inputs[13].value = data.name;
-        inputs[13].dispatchEvent(new Event("input"));
-        inputs[14].value = data.price;
-        inputs[14].dispatchEvent(new Event("input"));
-        if (data.deliverTemperature === "冷凍" && radios.length > 0) {
-          radios[0].checked = true;
-          radios[0].dispatchEvent(new Event("change", { bubbles: true }));
-        } else if (data.deliverTemperature === "冷藏" && radios.length > 0 ) {
-          radios[1].checked = true;
-          radios[1].dispatchEvent(new Event("change", { bubbles: true }));
-        } else {
-          alert(`所選貨物是${data.deliverTemperature}`)
-        }
+ if (request.type === 'fillCargo') {
+  try {
+    const data = request.payload;
+    const inputs = document.querySelectorAll("input");
+    const selects = document.querySelectorAll("select");
+    const radios = document.querySelectorAll('input[type="radio"]');
+    // 計算有多少radio 只有一個的就是常溫單，兩個就是低溫單
+    const radioCount = radios.length;
+    
+    let alertMessage = null; // 用來儲存需要顯示的警告訊息
+    
+    if (radioCount === 1) {
+      inputs[12].value = data.name;
+      inputs[12].dispatchEvent(new Event("input"));
+      inputs[13].value = data.price;
+      inputs[13].dispatchEvent(new Event("input"));
+      if (data.deliverTemperature === "常溫" && radios.length > 0) {
+        radios[0].checked = true;
+        radios[0].dispatchEvent(new Event("change", { bubbles: true }));
+      } else {
+        alertMessage = `所選貨物是${data.deliverTemperature}`;
       }
-      selects[4].value = data.deliverTime;
-      selects[4].dispatchEvent(new Event("change"));
-      sendResponse({ success: true });
-       return true
-    } catch (e) {
-      console.error("填入貨物資料失敗", e);
-      sendResponse({ success: false, error: String(e) });
-       return true
+    } else if (radioCount === 2) {
+      inputs[13].value = data.name;
+      inputs[13].dispatchEvent(new Event("input"));
+      inputs[14].value = data.price;
+      inputs[14].dispatchEvent(new Event("input"));
+      if (data.deliverTemperature === "冷凍" && radios.length > 0) {
+        radios[0].checked = true;
+        radios[0].dispatchEvent(new Event("change", { bubbles: true }));
+      } else if (data.deliverTemperature === "冷藏" && radios.length > 0 ) {
+        radios[1].checked = true;
+        radios[1].dispatchEvent(new Event("change", { bubbles: true }));
+      } else {
+        alertMessage = `所選貨物是${data.deliverTemperature}`;
+      }
     }
+    
+    selects[4].value = data.deliverTime;
+    selects[4].dispatchEvent(new Event("change"));
+    
+    // 回傳結果，包含警告訊息
+    sendResponse({ 
+      success: true, 
+      alertMessage: alertMessage 
+    });
+    return true;
+  } catch (e) {
+    console.error("填入貨物資料失敗", e);
+    sendResponse({ success: false, error: String(e) });
+    return true;
   }
+}
   // 匯入與匯出資料
 if (request.type === 'exportFillData') {
   const keys = ['senders', 'receivers', 'cargos'];

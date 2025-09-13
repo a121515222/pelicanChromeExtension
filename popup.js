@@ -527,40 +527,46 @@ function renderSenderList(senders){
     }
   });
 }
-function renderCargoList(cargos) {
-  renderList({
-    containerId: "cargoList",
-    data: cargos,
-    itemNameKey: "name",
-    onFill: (cargo) => {
-      chromeTabsQuery({
-      type: "fillCargo",
-      payload: cargo,
-      alertMessage: "填入失敗",
-      onSuccess: () => console.log("填入完成"),
-      onError: (err) => console.error("填入錯誤:", err),
-      expectResponse:false
-  });
-    },
-    onDelete: (cargo) => {
-      deleteListByIdAndName({
-        item: cargo,
-        type: "getCargos",
-        localStorageKey: "cargos",
-        confirmMessage: "確認刪除這個收件人嗎?",
-        dataName: "name",
-        successCallback: () => getDataAndRender({
-          type: "getCargos",
-          localStorageKey: "cargos",
-          renderCallback: renderCargoList
-        }),
-        saveType: "saveModifyCargos"
-      });
-    },
-    onItemClick: (cargo) => {
-      setCargoToInputs(cargo);
-    }
-  });
+function renderCargoList(cargos) {   
+  renderList({     
+    containerId: "cargoList",     
+    data: cargos,     
+    itemNameKey: "name",     
+    onFill: (cargo) => {       
+      chromeTabsQuery({       
+        type: "fillCargo",       
+        payload: cargo,       
+        alertMessage: "填入失敗",       
+        onSuccess: (response) => {
+          console.log("填入完成");
+          // 檢查是否有警告訊息需要顯示
+          if (response && response.alertMessage) {
+            alert(response.alertMessage); // 這個 alert 會顯示在 popup 內
+          }
+        },       
+        onError: (err) => console.error("填入錯誤:", err),       
+        expectResponse: true // 改為 true 因為我們需要接收回應
+      });     
+    },     
+    onDelete: (cargo) => {       
+      deleteListByIdAndName({         
+        item: cargo,         
+        type: "getCargos",         
+        localStorageKey: "cargos",         
+        confirmMessage: "確認刪除這個貨物嗎?",         
+        dataName: "name",         
+        successCallback: () => getDataAndRender({           
+          type: "getCargos",           
+          localStorageKey: "cargos",           
+          renderCallback: renderCargoList         
+        }),         
+        saveType: "saveModifyCargos"       
+      });     
+    },     
+    onItemClick: (cargo) => {       
+      setCargoToInputs(cargo);     
+    }   
+  }); 
 }
 // 渲染清單
 function renderList({
@@ -592,7 +598,7 @@ function renderList({
           <p>${item[itemNameKey] || "未命名"}</p>
         </div>
         <div class="item-actions">
-          <button class="fill-btn">填入</button>
+          <button class="fill-btn mr-4">填入</button>
           <button class="delete-btn">刪除</button>
         </div>
       </div>

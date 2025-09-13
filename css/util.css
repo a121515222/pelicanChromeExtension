@@ -62,7 +62,9 @@ video {
 .mt-10 {
   margin-top: 10px;
 }
-
+.mr-4 {
+  margin-right: 4px;
+}
 #receiverList,
 #senderList,
 #cargoList {
